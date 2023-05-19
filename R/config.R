@@ -1,0 +1,4 @@
+DATA_PATH <- "../data"
+DATA_SENSITIVE_PATH <- file.path(DATA_PATH, 'sensitive')
+DB_TALLAS_PATH <- file.path(DATA_SENSITIVE_PATH, 'CONSULTA BDP_UTPB_TALLAS_17-04-2023_utf8.csv')
+DB_READ <- FALSE
