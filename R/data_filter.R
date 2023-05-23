@@ -8,7 +8,7 @@ library("tidyverse")
 DbDataFilter <- R6Class("DbDataFilter",
                         public = list(
                           db_data = NULL,
-                          clean_df = data.frame(),
+                          clean_df = NULL,
                           dirty_df = data.frame(),
                           initialize = function(df) {
                             self$db_data <- df
@@ -19,18 +19,20 @@ DbDataFilter <- R6Class("DbDataFilter",
                             invisible(self)
                           },
                           to_datetime = function(fields) {
-                            self$clean_df <- self$clean_df %>% mutate_at(.vars = fields, .funs = dmy_hms)
+                            self$clean_df <- self$clean_df %>% mutate_at(.vars = fields,
+                                                                         ~ as.POSIXct(., format = "%d/%m/%Y %H:%M", tz = "UTC"))
                             invisible(self)
                           },
                           get_rid_of_NaNs = function(fields) {
-                            self$clean_df <- private$copy_or_add(self$clean_df, self$db_data %>% drop_na(any_of(fields)))
-                            self$dirty_df <- private$copy_or_add(self$dirty_df, self$db_data %>% filter(if_any(fields, ~is.na(.x))))
+                            dirty_data <- self$clean_df %>% filter(if_all(fields, ~is.na(.x)))
+                            self$dirty_df <- private$copy_or_add(self$dirty_df, dirty_data)
+                            self$clean_df <- self$clean_df %>% filter(if_all(fields, ~!is.na(.x)))
                             invisible(self)
                           }
                         ),
                         private = list(
                           copy_or_add = function(df_to, df_from) {
-                            if (nrow(df_to)) {
+                            if (!nrow(df_to)) {
                               df_to <- df_from
                             }
                             else {
