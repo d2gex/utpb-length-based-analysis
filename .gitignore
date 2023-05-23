@@ -53,3 +53,4 @@ rsconnect/
 
 # Avoid sending test.R
 test.R
+to_delete
