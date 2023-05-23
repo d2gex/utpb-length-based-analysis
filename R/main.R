@@ -32,12 +32,12 @@ mute <- db_filter$clean_df %>% verify(do.call(has_all_names, new_columns))
 datetime_columns <- c('dia', 'FLARG', 'FVIR', 'HorafL', 'HorafV')
 db_filter$to_datetime(datetime_columns)
 
-# (3) Get rid of rows that eith HorafL or FLARG are null
-# largarda_columns <- c('FLARG', 'HorafL')
-# db_filter$get_rid_of_NaNs(largarda_columns)
-# mute <- db_filter$dirty_df %>%
-#   verify(is.na(FLARG)) %>%
-#   verify(is.na(HorafL))
-# testit::assert("dirty + clean != data",
-#                nrow(db_filter$db_data) == nrow(db_filter$clean_df) + nrow(db_filter$dirty_df))
+# (3) Get rid of rows that either HorafL or FLARG are NaN
+largarda_columns <- c('FLARG', 'HorafL')
+db_filter$get_rid_of_NaNs(largarda_columns)
+mute <- db_filter$dirty_df %>%
+  verify(is.na(FLARG)) %>%
+  verify(is.na(HorafL))
+testit::assert("dirty + clean != data",
+               nrow(db_filter$db_data) == nrow(db_filter$clean_df) + nrow(db_filter$dirty_df))
 
