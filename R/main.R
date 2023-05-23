@@ -32,12 +32,16 @@ mute <- db_filter$clean_df %>% verify(do.call(has_all_names, new_columns))
 datetime_columns <- c('dia', 'FLARG', 'FVIR', 'HorafL', 'HorafV')
 db_filter$to_datetime(datetime_columns)
 
-# (3) Get rid of rows that either HorafL or FLARG are NaN
+# (3) Get rid of rows that either HorafL and FLARG are both NaN or HorafV and FVIR are both NaN
 largarda_columns <- c('FLARG', 'HorafL')
-db_filter$get_rid_of_NaNs(largarda_columns)
-mute <- db_filter$dirty_df %>%
-  verify(is.na(FLARG)) %>%
-  verify(is.na(HorafL))
-testit::assert("dirty + clean != data",
-               nrow(db_filter$db_data) == nrow(db_filter$clean_df) + nrow(db_filter$dirty_df))
+db_filter$get_rid_of_NaNs_for_all_cols(largarda_columns)
+mute <- db_filter$clean_df %>%
+  filter(if_all(largarda_columns, ~is.na(.))) %>% # Not NaNs in both columns at the same time
+  verify(nrow(.) == 0)
 
+virada_columns <- c('FVIR', 'HorafV')
+db_filter$get_rid_of_NaNs_for_all_cols(virada_columns)
+mute <- db_filter$clean_df %>%
+  verify(nrow(.) + nrow(db_filter$dirty_df) == nrow(db_filter$db_data)) %>%  # dirty + clean = all
+  filter(if_all(largarda_columns, ~is.na(.))) %>% # Not NaNs in both columns at the same time
+  verify(nrow(.) == 0)
