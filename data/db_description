@@ -1,0 +1,20 @@
+# Common Columns between capturas and tallas
+
+ [1] "dia"             "OBSER1"          "Idflota"         "ZONA"            "PUERTO_EMBARQUE" "ARQUEO_TRB"
+ [7] "ARTE"            "Idjornada"       "Idlance"         "Piezas"          "FLARG"           "HorafL"
+[13] "FVIR"            "HorafV"          "mcarte1"         "valor"           "PROFMax"         "PROFMin"
+[19] "ESPECIE"         "rango"           "LAT inicio"       "LON inicio"      "LAT final"      "LON final"
+
+# Exclusive columns for tallas
+
+[1] "Id_tablaArte" "N.TRIPUS" "CoD"
+[8] "NUMINDIVS"    "PESO"         "SEXO"         "OVADA"        "TALLA"        "Escog"        "Madurez"
+[15] "Colorhuevos"  "EN.MUDA"      "DUREZA"       "eje.1A.P"     "eje.2D.V"     "eje.3"        "Tallcf.ojo"
+[22] "CampaÒa"
+
+# Exclusive columns for capturas
+
+[1] "N TRIPUS"           "Idnasa"
+[6]  "PROFMED"            "NUMc"               "PESOc"              "NUMd"
+[11] "PESOd"              "Modalidad_ARTE"     "Metier_palangrillo" "idarte"             "idespecie"
+[16] "campaña"            "SP_obj_1"           "SP_obj_2"
