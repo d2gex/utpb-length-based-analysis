@@ -51,4 +51,6 @@ mute <- db_filter$clean_df %>%
   verify(not_na(largada_time)) %>%
   verify(not_na(virada_time)) %>%
   verify(largada_time <= virada_time) %>%
-  verify(soak_time >= 0)
+  verify(soak_time >= 0) %>%
+  verify(!do.call(has_all_names, list('aux_largada', 'aux_virada')))
+
