@@ -1,7 +1,6 @@
 source("config.R")
 source("data_filter.R")
 library("tidyverse")
-library("testit")
 library("assertr")
 
 read_db_details <- function(path_to_csv) {
@@ -45,3 +44,11 @@ mute <- db_filter$clean_df %>%
   verify(nrow(.) + nrow(db_filter$dirty_df) == nrow(db_filter$db_data)) %>%  # dirty + clean = all
   filter(if_all(largarda_columns, ~is.na(.))) %>% # Not NaNs in both columns at the same time
   verify(nrow(.) == 0)
+
+# (4) Ensure that largada and virada times are integral: virada and largada are not NA and largada <= virada
+db_filter$extract_largada_virada_dates()
+mute <- db_filter$clean_df %>%
+  verify(not_na(largada_time)) %>%
+  verify(not_na(virada_time)) %>%
+  verify(largada_time <= virada_time) %>%
+  verify(soak_time >= 0)
