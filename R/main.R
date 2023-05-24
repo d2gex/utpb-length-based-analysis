@@ -54,13 +54,13 @@ db_filter$clean_df <- db_filter$clean_df %>%
   mutate(across(.cols = PUERTO_EMBARQUE,
                 ~ifelse(str_detect(., "Louriz"), "Lourizán (Pontevedra)", .)))
 
-fields <- c('ZONA', 'PUERTO_EMBARQUE', 'ARTE', 'ESPECIE')
+fields <- c('ZONA', 'PUERTO_EMBARQUE', 'ARTE', 'ESPECIE', 'valor')
 db_filter$to_encoding(fields, encoding = 'ASCII', string_transform = "Latin-ASCII")
 
 all_ascii <- function(x) return(unique(stri_enc_mark(x)) == 'ASCII')
 mute <-
   db_filter$clean_df %>%
     assert(function(x) return(not_na(x)),
-           ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE) %>%
+           ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE, valor) %>%
     assert(function(x) return(unique(stri_enc_mark(x)) == 'ASCII'),
-           ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE)
+           ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE,valor)
