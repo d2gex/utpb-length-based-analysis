@@ -46,13 +46,21 @@ mute <- db_filter$clean_df %>%
   verify(!do.call(has_all_names, list('aux_largada', 'aux_virada')))
 
 # (5) Convert string-based columns into ASCII.
-# --> It does not solve the problem of wrong names however it shapes each string into a known pattern
-# for later correction if required.
+
+# Need to covert this specific case not to lose the value once the encoding and transform occurs
+db_filter$clean_df <- db_filter$clean_df %>%
+  mutate(across(.cols = PUERTO_EMBARQUE,
+                ~ifelse(str_detect(., "Cibrao_Porti"), "San Cribao_Porto de Morás", .))) %>%
+  mutate(across(.cols = PUERTO_EMBARQUE,
+                ~ifelse(str_detect(., "Louriz"), "Lourizán (Pontevedra)", .)))
+
 fields <- c('ZONA', 'PUERTO_EMBARQUE', 'ARTE', 'ESPECIE')
 db_filter$to_encoding(fields, encoding = 'ASCII', string_transform = "Latin-ASCII")
+
+all_ascii <- function(x) return(unique(stri_enc_mark(x)) == 'ASCII')
 mute <-
   db_filter$clean_df %>%
-    verify(do.call(not_na, list(fields)))
-
-
-
+    assert(function(x) return(not_na(x)),
+           ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE) %>%
+    assert(function(x) return(unique(stri_enc_mark(x)) == 'ASCII'),
+           ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE)
