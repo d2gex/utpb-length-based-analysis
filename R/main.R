@@ -3,16 +3,7 @@ source("data_filter.R")
 library("tidyverse")
 library("assertr")
 
-read_db_details <- function(path_to_csv) {
-  if (!DB_READ) {
-    utpb_original_db <- read.csv(path_to_csv)
-    DB_READ <- TRUE
-  }
-  return(utpb_original_db)
-}
-
-
-db_data <- read_db_details(DB_TALLAS_PATH)
+db_data <- read.csv(DB_TALLAS_PATH)
 db_filter <- DbDataFilter$new(db_data)
 
 # (1) Rename georeference columns
@@ -53,4 +44,15 @@ mute <- db_filter$clean_df %>%
   verify(largada_time <= virada_time) %>%
   verify(soak_time >= 0) %>%
   verify(!do.call(has_all_names, list('aux_largada', 'aux_virada')))
+
+# (5) Convert string-based columns into ASCII.
+# --> It does not solve the problem of wrong names however it shapes each string into a known pattern
+# for later correction if required.
+fields <- c('ZONA', 'PUERTO_EMBARQUE', 'ARTE', 'ESPECIE')
+db_filter$to_encoding(fields, encoding = 'ASCII', string_transform = "Latin-ASCII")
+mute <-
+  db_filter$clean_df %>%
+    verify(do.call(not_na, list(fields)))
+
+
 
