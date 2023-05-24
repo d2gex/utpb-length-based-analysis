@@ -76,12 +76,13 @@ DbDataFilter <-
                 mutate(soak_time = virada_time - largada_time) %>%
                 # get rid of aux columns
                 select(-c(aux_largada, aux_virada))
-
+              invisible(self)
             },
             to_encoding = function(fields, encoding, string_transform) {
               self$clean_df <- self$clean_df %>%
                 mutate_at(.vars = fields, ~stri_trans_general(., id = string_transform)) %>%
                 mutate_at(.vars = fields, ~iconv(., to = encoding))
+              invisible(self)
             },
             classify_seafloor = function(hard_options, mixed_options, default, unknown) {
 
@@ -95,12 +96,11 @@ DbDataFilter <-
                   valor %in% unlist(unname(mixed_options)) ~ names(mixed_options),
                   .default = default # options not selected above
                 ))
-
+               invisible(self)
             }
           ),
           private = list(
             copy_or_add = function(df_to, df_from) {
-              print("hello world")
               if (!nrow(df_to)) {
                 df_to <- df_from
               }
