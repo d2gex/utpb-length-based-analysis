@@ -27,17 +27,17 @@ DbDataFilter <-
               invisible(self)
             },
             get_rid_of_NaNs_for_all_cols = function(fields) {
-                                                                      #' Get rid of *all* rows which passed columns do have their values to NaN
-                                                                      #' @param fields an array of strings
+                                          #' Get rid of *all* rows which passed columns do have their values to NaN
+                                          #' @param fields an array of strings
               dirty_data <- self$clean_df %>% filter(if_all(fields, ~is.na(.)))
               self$dirty_df <- private$copy_or_add(self$dirty_df, dirty_data)
               self$clean_df <- self$clean_df %>% filter(if_any(fields, ~!is.na(.)))
               invisible(self)
             },
             extract_largada_virada_dates = function() {
-                                                                      #' Build largada and virada times depending on the columns HorafL, HorafV, FLARG and FVIR
-                                                                      #' It guesses potential swapping times and correct them. This function assumes that one of the
-                                                                      #' two fields for largada or virada do have at least a non NaN value.
+                                          #' Build largada and virada times depending on the columns HorafL, HorafV, FLARG and FVIR
+                                          #' It guesses potential swapping times and correct them. This function assumes that one of the
+                                          #' two fields for largada or virada do have at least a non NaN value.
               self$clean_df <- self$clean_df %>%
                 # Get non NA value of the two largada fields; Otherwise the smallest of the two
                 mutate(largada_time = case_when(
@@ -82,10 +82,25 @@ DbDataFilter <-
               self$clean_df <- self$clean_df %>%
                 mutate_at(.vars = fields, ~stri_trans_general(., id = string_transform)) %>%
                 mutate_at(.vars = fields, ~iconv(., to = encoding))
+            },
+            classify_seafloor = function(hard_options, mixed_options, default, unknown) {
+
+              # dirty_data <- self$clean_df %>% filter(is.na(valor) | nzchar(valor))
+              # self$dirty_df <- private$copy_or_add(self$dirty_df, dirty_data)
+
+              self$clean_df <- self$clean_df %>%
+                mutate(seafloor = case_when(
+                  is.na(valor) | nzchar(valor) ~ unknown, # NaN, zero strings
+                  valor %in% unlist(unname(hard_options)) ~ names(hard_options),
+                  valor %in% unlist(unname(mixed_options)) ~ names(mixed_options),
+                  .default = default # options not selected above
+                ))
+
             }
           ),
           private = list(
             copy_or_add = function(df_to, df_from) {
+              print("hello world")
               if (!nrow(df_to)) {
                 df_to <- df_from
               }

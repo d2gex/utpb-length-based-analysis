@@ -3,7 +3,7 @@ source("data_filter.R")
 library("tidyverse")
 library("assertr")
 
-db_data <- read.csv(DB_TALLAS_PATH)
+# db_data <- read.csv(DB_TALLAS_PATH)
 db_filter <- DbDataFilter$new(db_data)
 
 # (1) Rename georeference columns
@@ -63,4 +63,33 @@ mute <-
     assert(function(x) return(not_na(x)),
            ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE, valor) %>%
     assert(function(x) return(unique(stri_enc_mark(x)) == 'ASCII'),
-           ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE,valor)
+           ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE, valor)
+
+# (6) Classify seafloor type
+hard_seafloor_options <- list('hard' = c("piedra", "roca y algas", "piedra dura"))
+mixed_seafloor_options <- list(
+  'mixed' = c("cascos de barcos y/o bateas",
+              "piedra y arena",
+              "algas, roca y arena",
+              "piedra y fango",
+              "fango-pedra-cascallo",
+              "piedra y coral",
+              "pedra-cascallo",
+              "arena-coral-piedra",
+              "cascajo con arena y piedras")
+)
+default_substrata <- 'soft'
+unknown_substrata <- 'unknown'
+substrata_type <- c(names(hard_seafloor_options),
+                    names(mixed_seafloor_options),
+                    default_substrata,
+                    unknown_substrata)
+
+db_filter$classify_seafloor(hard_seafloor_options,
+                            mixed_seafloor_options,
+                            default_substrata,
+                            unknown_substrata)
+
+mute <- db_filter$clean_df %>%
+  verify(nrow(.) + nrow(db_filter$dirty_df) == nrow(db_filter$db_data)) %>%
+  assert(function(x) return(x %in% substrata_type), seafloor)
