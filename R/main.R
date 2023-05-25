@@ -3,7 +3,7 @@ source("data_filter.R")
 library("tidyverse")
 library("assertr")
 
-# db_data <- read.csv(DB_TALLAS_PATH)
+#db_data <- read.csv(DB_TALLAS_PATH)
 db_filter <- DbDataFilter$new(db_data)
 
 # (1) Rename georeference columns
@@ -93,3 +93,6 @@ db_filter$classify_seafloor(hard_seafloor_options,
 mute <- db_filter$clean_df %>%
   verify(nrow(.) + nrow(db_filter$dirty_df) == nrow(db_filter$db_data)) %>%
   assert(function(x) return(x %in% substrata_type), seafloor)
+
+mute <- db_filter$dirty_df %>%
+  verify("Empty field: valor" %in% unique(error))
