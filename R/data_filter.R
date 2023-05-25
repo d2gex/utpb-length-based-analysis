@@ -12,8 +12,8 @@ DbDataFilter <-
   R6Class("DbDataFilter",
           inherit = BaseDataFilter,
           public = list(
-            initialize = function(df) {
-              super$initialize(df)
+            initialize = function(clean_data, dirty_data) {
+              super$initialize(clean_data, dirty_data)
             },
             rename_columns = function(old_cols, new_cols) {
               data.table::setnames(self$clean_df, old = old_cols, new = new_cols)

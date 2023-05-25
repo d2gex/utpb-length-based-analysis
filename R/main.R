@@ -4,7 +4,9 @@ source("long_lat.R")
 library("tidyverse")
 library("assertr")
 
-db_data <- read.csv(DB_TALLAS_PATH)
+if (!exists('db_data')) {
+  db_data <- read.csv(DB_TALLAS_PATH)
+}
 db_filter <- DbDataFilter$new(db_data)
 
 # (1) Rename georeference columns
@@ -97,7 +99,7 @@ mute <- db_filter$dirty_df %>%
   verify("Empty field: valor" %in% unique(error))
 
 # (7) Get rows which longitude and latitude pairs have got at least one value
-long_lat_filter <- LongLatFilter$new(db_filter$clean_df)
+long_lat_filter <- LongLatFilter$new(db_filter$clean_df, db_filter$dirty_df)
 long_fields <- c('start_long', 'end_long')
 lat_fields <- c('start_lat', 'end_lat')
 long_lat_filter$get_rid_of_NaNs(long_fields, lat_fields)
@@ -126,3 +128,9 @@ long_lat_filter$transform_geopoints()
 mute <- long_lat_filter$clean_df %>%
   filter(if_any(c('lon', 'lat'), ~is.na(.))) %>%
   verify(nrow(.) == 0)
+
+# (x) Concatenate clean and dirty dataframes
+db_filter$set_clean_data(long_lat_filter$clean_df)
+db_filter$set_dirty_data(long_lat_filter$dirty_df)
+
+

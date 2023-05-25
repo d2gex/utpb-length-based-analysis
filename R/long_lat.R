@@ -4,8 +4,8 @@ source("utils.R")
 LongLatFilter <- R6Class("LongLatFilter",
                          inherit = BaseDataFilter,
                          public = list(
-                           initialize = function(df) {
-                             super$initialize(df)
+                           initialize = function(clean_data, dirty_data) {
+                             super$initialize(clean_data, dirty_data)
                            },
                            get_rid_of_NaNs = function(long_fields, lat_fields) {
 
