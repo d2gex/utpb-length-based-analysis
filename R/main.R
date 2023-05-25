@@ -1,9 +1,10 @@
 source("config.R")
 source("data_filter.R")
+source("long_lat.R")
 library("tidyverse")
 library("assertr")
 
-#db_data <- read.csv(DB_TALLAS_PATH)
+db_data <- read.csv(DB_TALLAS_PATH)
 db_filter <- DbDataFilter$new(db_data)
 
 # (1) Rename georeference columns
@@ -94,3 +95,26 @@ mute <- db_filter$clean_df %>%
   assert(function(x) return(x %in% substrata_type), seafloor)
 mute <- db_filter$dirty_df %>%
   verify("Empty field: valor" %in% unique(error))
+
+# (7) Get rows which longitude and latitude pairs have got at least one value
+long_lat_filter <- LongLatFilter$new(db_filter$clean_df)
+long_fields <- c('start_long', 'end_long')
+lat_fields <- c('start_lat', 'end_lat')
+long_lat_filter$get_rid_of_NaNs(long_fields, lat_fields)
+
+# Ensure that in the clean data there is no rows with all geo-fields as NA
+mute <- long_lat_filter$clean_df %>%
+  filter(if_all(c(long_fields, lat_fields), ~is.na(.))) %>%
+  verify(nrow(.) == 0)
+
+# Ensure that there if the LONGITUDE pair has got at least ONE value its LATITUDE counterpart does too
+mute <- long_lat_filter$clean_df %>%
+  filter(if_any(long_fields, ~not_na(.))) %>%
+  filter(if_all(lat_fields, ~is.na(.))) %>%
+  verify(nrow(.) == 0)
+
+# Ensure that there if the LATITUDE pair has got at least ONE value its LONGITUDE counterpart does too
+mute <- long_lat_filter$clean_df %>%
+  filter(if_any(lat_fields, ~not_na(.))) %>%
+  filter(if_all(long_fields, ~is.na(.))) %>%
+  verify(nrow(.) == 0)

@@ -20,5 +20,8 @@ BaseDataFilter <- R6Class("BaseDataFilter", public = list(
       self$dirty_df[new_columns] <- 'artifitcially created'
       self$dirty_df <- rbind(self$dirty_df, dirty_df)
     }
+  },
+  add_to_clean = function(clean_df) {
+    self$clean_df <- rbind(self$clean_df, clean_df)
   }
 ))
