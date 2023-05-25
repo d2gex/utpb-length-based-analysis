@@ -102,19 +102,27 @@ long_fields <- c('start_long', 'end_long')
 lat_fields <- c('start_lat', 'end_lat')
 long_lat_filter$get_rid_of_NaNs(long_fields, lat_fields)
 
-# Ensure that in the clean data there is no rows with all geo-fields as NA
+# --> Ensure that in the clean data there is no rows with all geo-fields as NA
 mute <- long_lat_filter$clean_df %>%
   filter(if_all(c(long_fields, lat_fields), ~is.na(.))) %>%
   verify(nrow(.) == 0)
 
-# Ensure that there if the LONGITUDE pair has got at least ONE value its LATITUDE counterpart does too
+# --> Ensure that there if the LONGITUDE pair has got at least ONE value its LATITUDE counterpart does too
 mute <- long_lat_filter$clean_df %>%
   filter(if_any(long_fields, ~not_na(.))) %>%
   filter(if_all(lat_fields, ~is.na(.))) %>%
   verify(nrow(.) == 0)
 
-# Ensure that there if the LATITUDE pair has got at least ONE value its LONGITUDE counterpart does too
+# --> Ensure that there if the LATITUDE pair has got at least ONE value its LONGITUDE counterpart does too
 mute <- long_lat_filter$clean_df %>%
   filter(if_any(lat_fields, ~not_na(.))) %>%
   filter(if_all(long_fields, ~is.na(.))) %>%
+  verify(nrow(.) == 0)
+
+# (8) Transform longitud and latitude to decimal degree
+long_lat_filter$transform_geopoints()
+
+# --> Make sure that every pair of geopoint has a value
+mute <- long_lat_filter$clean_df %>%
+  filter(if_any(c('lon', 'lat'), ~is.na(.))) %>%
   verify(nrow(.) == 0)
