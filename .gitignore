@@ -49,6 +49,7 @@ po/*~
 rsconnect/
 
 /data/sensitive
+qgis/output
 .idea
 
 # Avoid sending test.R
