@@ -44,11 +44,12 @@ library(patchwork)
 # 2 # LOAD DATA ----------------------------------------------------------
 
 # Load original data from utpb
-utpb <- read_csv2("data\\CONSULTA BDP_UTPB_CAPTURAS_01-02-2019.csv")
-utpb
+# utpb <- read_csv2("data\\CONSULTA BDP_UTPB_CAPTURAS_01-02-2019.csv")
+# utpb <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_CAPTURAS_16-05-2018.csv", locale = locale(encoding = 'latin1'))
+utpb <- read_csv("../data/sensitive/CONSULTA BDP_UTPB_TALLAS_17-04-2023_.csv", locale = locale(encoding = 'latin1'))
 names(utpb)
 
-View(problems(utpb)) # SP_obj_2
+# View(problems(utpb)) # SP_obj_2
 
 # change inapropiate var names "Campa\xf1a
 # related to encoding 
@@ -58,9 +59,9 @@ colnames(utpb)[18] <- "LAT_inicio"
 colnames(utpb)[19] <- "LON_inicio"
 colnames(utpb)[20] <- "LAT_final"
 colnames(utpb)[21] <- "LON_final"
-str(utpb)
-View(utpb)
-dim(utpb)
+# str(utpb)
+# View(utpb)
+# dim(utpb)
 
 
 
@@ -73,9 +74,9 @@ dim(utpb)
 # FLARG = final largada
 # FVIR = final virada
 # HorafL = final largada
-# HorafV = final virada  
+# HorafV = final virada
 
-names(utpb)
+# names(utpb)
 utpb %>%
   select(dia, FLARG:HorafV)
 
@@ -90,13 +91,13 @@ utpb <- utpb %>%
          Month = month(dia),
          Julian = yday(dia)) 
 
-utpb %>%
-  select(Year, Month, Julian) %>%
-  sapply(. %>% range) 
+# utpb %>%
+#   select(Year, Month, Julian) %>%
+#   sapply(. %>% range)
 
 # 3.2. Soaktime -----------------------------------------------------------
 
-dim(utpb)
+# dim(utpb)
 # 864633     41
 
 length(which(is.na(utpb$HorafL)))  #556564
@@ -143,11 +144,11 @@ utpb <- utpb %>%
   )
 
 
-View(
-  utpb %>%
-    filter(LARGADA < InitLargada) %>%
-    select(InitLargada, FinLargada, LARGADA, dia, Idlance)
-)
+# View(
+#   utpb %>%
+#     filter(LARGADA < InitLargada) %>%
+#     select(InitLargada, FinLargada, LARGADA, dia, Idlance)
+# )
 
 # bad correspondence with year
 utpb <- utpb %>%
@@ -157,9 +158,9 @@ utpb <- utpb %>%
     as.character(LARGADA)
   )))
 
-utpb %>%
-  filter(VIRADA < LARGADA) %>%
-  select(LARGADA, VIRADA, mcarte1) # ok
+# utpb %>%
+#   filter(VIRADA < LARGADA) %>%
+#   select(LARGADA, VIRADA, mcarte1) # ok
 
 # estimate soaktime
 utpb <- utpb %>%
@@ -177,46 +178,46 @@ length(which(utpb$Soaktime == 0))             #0
 length(which(utpb$Soaktime > utpb$mcarte1))   #803315
 length(which(utpb$Soaktime < utpb$mcarte1))   #849
 
-utpb %>% 
-  select(Soaktime,mcarte1) %>% 
-  ggplot(aes(x=mcarte1,y=Soaktime))+geom_point()+geom_line()
+# utpb %>%
+#   select(Soaktime,mcarte1) %>%
+#   ggplot(aes(x=mcarte1,y=Soaktime))+geom_point()+geom_line()
 # extreme values of soaktime and mcarte1?
 
 length(which(is.na(utpb$mcarte1)))  #13
 length(which(is.na(utpb$Soaktime))) #13
 
-# overestimate
-p1 <- utpb %>%
-  filter(Soaktime > mcarte1) %>%
-  ggplot(aes(x = mcarte1, y = Soaktime)) + geom_point() + geom_line() +
-  ggtitle("overestimate")
-# underestimate
-p2 <- utpb %>%
-  filter(Soaktime < mcarte1) %>%
-  ggplot(aes(x = mcarte1, y = Soaktime)) + geom_point() + geom_line() +
-  ggtitle("underestimate")
-# errors >10%
-p3 <- utpb %>%
-  mutate(soakdif = abs(100 * (Soaktime - mcarte1) / mcarte1)) %>%
-  filter(soakdif > 10) %>%
-  select(LARGADA, VIRADA, Soaktime, mcarte1, soakdif) %>%
-  ggplot(aes(x = mcarte1, y = Soaktime)) + geom_point() + geom_line()
-
-(p1 | p2) / p3
-
-utpb %>%
-  summarise(
-    minutpb = min(mcarte1, na.rm = T),
-    maxutpb = max(mcarte1, na.rm = T),
-    minus = min(mcarte1, na.rm = T),
-    maxus = max(mcarte1, na.rm = T)
-  ) 
-
-View(
-  utpb %>%
-    filter(mcarte1 < 100 & Soaktime > 1000) %>%
-    select(LARGADA, VIRADA, Soaktime, mcarte1, Idlance,dia)
-)
+# # overestimate
+# p1 <- utpb %>%
+#   filter(Soaktime > mcarte1) %>%
+#   ggplot(aes(x = mcarte1, y = Soaktime)) + geom_point() + geom_line() +
+#   ggtitle("overestimate")
+# # underestimate
+# p2 <- utpb %>%
+#   filter(Soaktime < mcarte1) %>%
+#   ggplot(aes(x = mcarte1, y = Soaktime)) + geom_point() + geom_line() +
+#   ggtitle("underestimate")
+# # errors >10%
+# p3 <- utpb %>%
+#   mutate(soakdif = abs(100 * (Soaktime - mcarte1) / mcarte1)) %>%
+#   filter(soakdif > 10) %>%
+#   select(LARGADA, VIRADA, Soaktime, mcarte1, soakdif) %>%
+#   ggplot(aes(x = mcarte1, y = Soaktime)) + geom_point() + geom_line()
+#
+# (p1 | p2) / p3
+#
+# utpb %>%
+#   summarise(
+#     minutpb = min(mcarte1, na.rm = T),
+#     maxutpb = max(mcarte1, na.rm = T),
+#     minus = min(mcarte1, na.rm = T),
+#     maxus = max(mcarte1, na.rm = T)
+#   )
+#
+# View(
+#   utpb %>%
+#     filter(mcarte1 < 100 & Soaktime > 1000) %>%
+#     select(LARGADA, VIRADA, Soaktime, mcarte1, Idlance,dia)
+# )
 
 # No encuentro un criterio claro para corregir
 # solución: mantener las dos estimas de tiempo de calado
@@ -226,34 +227,34 @@ View(
 # 3.3. Factors ------------------------------------------------------------
 
 #problems with encoding
-utpb %>% 
-  select(ZONA, PUERTO_EMBARQUE, ARTE, Modalidad_ARTE, Metier_palangrillo, valor, ESPECIE)
+# utpb %>%
+#   select(ZONA, PUERTO_EMBARQUE, ARTE, Modalidad_ARTE, Metier_palangrillo, valor, ESPECIE)
 
-utpb <- utpb %>%
-  mutate(
-    ZONA = parse_character(ZONA, locale = locale(encoding = "ASCII")),
-    PUERTO_EMBARQUE = parse_character(PUERTO_EMBARQUE, locale = locale(encoding = "ASCII")),
-    ARTE = parse_character(ARTE, locale = locale(encoding = "ASCII")),
-    Modalidad_ARTE = parse_character(Modalidad_ARTE, locale = locale(encoding = "ASCII"))
-  ) %>%
-  # q=nh
-  mutate(
-    ZONA = str_replace(ZONA, "q", "nh"),
-    PUERTO_EMBARQUE = str_replace(PUERTO_EMBARQUE, "q", "nh"),
-    ARTE = str_replace(ARTE, "Q", "NH"),
-    Modalidad_ARTE = str_replace(Modalidad_ARTE, "Q", "NH")
-  )
-
-sort(unique(utpb$ZONA))
-sort(unique(utpb$PUERTO_EMBARQUE))
-sort(unique(utpb$ARTE))
-sort(unique(utpb$Modalidad_ARTE))
-sort(unique(utpb$Metier_palangrillo))
-sort(unique(utpb$valor))
-sort(unique(utpb$ESPECIE))
-
-utpb <- utpb %>%
-  mutate(ARTE = if_else(ARTE == "NASA NICORA E CAMARSN", "NASA NECORA E CAMARON", ARTE))
+# utpb <- utpb %>%
+#   mutate(
+#     ZONA = parse_character(ZONA, locale = locale(encoding = "ASCII")),
+#     PUERTO_EMBARQUE = parse_character(PUERTO_EMBARQUE, locale = locale(encoding = "ASCII")),
+#     ARTE = parse_character(ARTE, locale = locale(encoding = "ASCII")),
+#     Modalidad_ARTE = parse_character(Modalidad_ARTE, locale = locale(encoding = "ASCII"))
+#   ) %>%
+#   # q=nh
+#   mutate(
+#     ZONA = str_replace(ZONA, "q", "nh"),
+#     PUERTO_EMBARQUE = str_replace(PUERTO_EMBARQUE, "q", "nh"),
+#     ARTE = str_replace(ARTE, "Q", "NH"),
+#     Modalidad_ARTE = str_replace(Modalidad_ARTE, "Q", "NH")
+#   )
+#
+# sort(unique(utpb$ZONA))
+# sort(unique(utpb$PUERTO_EMBARQUE))
+# sort(unique(utpb$ARTE))
+# sort(unique(utpb$Modalidad_ARTE))
+# sort(unique(utpb$Metier_palangrillo))
+# sort(unique(utpb$valor))
+# sort(unique(utpb$ESPECIE))
+#
+# utpb <- utpb %>%
+#   mutate(ARTE = if_else(ARTE == "NASA NICORA E CAMARSN", "NASA NECORA E CAMARON", ARTE))
 
 # reducir levels in valor/seafloor
 utpb <- utpb %>%
@@ -285,150 +286,150 @@ length(which(is.na(utpb$valor)))    #12543
 length(which(is.na(utpb$seafloor))) #12543
 
 # change characters to factor
-utpb <- utpb %>%
-  mutate(
-    ZONA = factor(ZONA),
-    PUERTO_EMBARQUE = factor(PUERTO_EMBARQUE),
-    ARTE = factor(ARTE),
-    Modalidad_ARTE = factor(Modalidad_ARTE),
-    Metier_palangrillo = factor(Metier_palangrillo),
-    valor = factor(valor),
-    ESPECIE = factor(ESPECIE)
-  )
+# utpb <- utpb %>%
+#   mutate(
+#     ZONA = factor(ZONA),
+#     PUERTO_EMBARQUE = factor(PUERTO_EMBARQUE),
+#     ARTE = factor(ARTE),
+#     Modalidad_ARTE = factor(Modalidad_ARTE),
+#     Metier_palangrillo = factor(Metier_palangrillo),
+#     valor = factor(valor),
+#     ESPECIE = factor(ESPECIE)
+#   )
 
-utpb %>%
-  select(
-    ZONA,
-    PUERTO_EMBARQUE,
-    ARTE,
-    Modalidad_ARTE,
-    Metier_palangrillo,
-    valor,
-    ESPECIE,
-    seafloor
-  ) %>%
-  str()
+# utpb %>%
+#   select(
+#     ZONA,
+#     PUERTO_EMBARQUE,
+#     ARTE,
+#     Modalidad_ARTE,
+#     Metier_palangrillo,
+#     valor,
+#     ESPECIE,
+#     seafloor
+#   ) %>%
+#   str()
 
 # 3.4. Depth --------------------------------------------------------------
 
-utpb %>%
-  select(PROFMax, PROFMin) %>% 
-  filter(PROFMax < PROFMin) # no aparente errors, so...
+# utpb %>%
+#   select(PROFMax, PROFMin) %>%
+#   filter(PROFMax < PROFMin) # no aparente errors, so...
 
-utpb <- utpb %>%
-  mutate(Depth = (PROFMax + PROFMin) / 2)
+# utpb <- utpb %>%
+#   mutate(Depth = (PROFMax + PROFMin) / 2)
 
-utpb %>%
-  select(PROFMax, PROFMin, Depth)
-utpb %>%
-  filter(Depth == 0) %>%
-  select(PROFMax, PROFMin, Depth)
-utpb %>%
-  filter(PROFMax < Depth) %>%
-  select(PROFMax, PROFMin, Depth)
-utpb %>%
-  filter(PROFMin > Depth) %>%
-  select(PROFMax, PROFMin, Depth)
+# utpb %>%
+#   select(PROFMax, PROFMin, Depth)
+# utpb %>%
+#   filter(Depth == 0) %>%
+#   select(PROFMax, PROFMin, Depth)
+# utpb %>%
+#   filter(PROFMax < Depth) %>%
+#   select(PROFMax, PROFMin, Depth)
+# utpb %>%
+#   filter(PROFMin > Depth) %>%
+#   select(PROFMax, PROFMin, Depth)
 
-p4 <- utpb %>%
-  ggplot(aes(x = Depth, y = PROFMin)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = F)
-p5 <- utpb %>%
-  ggplot(aes(x = Depth, y = PROFMax)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = F)
-
-p4 | p5
+# p4 <- utpb %>%
+#   ggplot(aes(x = Depth, y = PROFMin)) +
+#   geom_point() +
+#   geom_smooth(method = "lm", se = F)
+# p5 <- utpb %>%
+#   ggplot(aes(x = Depth, y = PROFMax)) +
+#   geom_point() +
+#   geom_smooth(method = "lm", se = F)
+#
+# p4 | p5
 
 # 3.5. Catch data ---------------------------------------------------------
 
 # pasar NAs a ceros
 # (asumiendo que no data==0 captura, este punto es crítico ya que no siempre es así)
-summary(utpb$NUMc)  #781250 NAs NUMc
-summary(utpb$NUMd)  #818529 NAs NUMd
-summary(utpb$PESOc) #781264 NAs PESOc
-summary(utpb$PESOd) #818582 NAs PESOd
-
-head(table(utpb$NUMc))  #NO zeros
-head(table(utpb$NUMd))  #NO zeros
-head(table(utpb$PESOc)) #NO zeros
-head(table(utpb$PESOd)) #NO zeros
-
-#pasamos todos los NAs a zeros
-utpb <- utpb %>%
-  mutate(
-    NUMc = if_else(is.na(NUMc), 0, NUMc),
-    NUMd = if_else(is.na(NUMd), 0, NUMd),
-    PESOc = if_else(is.na(PESOc), 0, PESOc),
-    PESOd = if_else(is.na(PESOd), 0, PESOd)
-  ) 
-
-head(table(utpb$NUMc))  #781250 zeros (OK)
-head(table(utpb$NUMd))  #818529 zeros (OK)
-head(table(utpb$PESOc)) #781264 zeros (OK)
-head(table(utpb$PESOd)) #818582 zeros (OK)
+# summary(utpb$NUMc)  #781250 NAs NUMc
+# summary(utpb$NUMd)  #818529 NAs NUMd
+# summary(utpb$PESOc) #781264 NAs PESOc
+# summary(utpb$PESOd) #818582 NAs PESOd
+#
+# head(table(utpb$NUMc))  #NO zeros
+# head(table(utpb$NUMd))  #NO zeros
+# head(table(utpb$PESOc)) #NO zeros
+# head(table(utpb$PESOd)) #NO zeros
+#
+# #pasamos todos los NAs a zeros
+# utpb <- utpb %>%
+#   mutate(
+#     NUMc = if_else(is.na(NUMc), 0, NUMc),
+#     NUMd = if_else(is.na(NUMd), 0, NUMd),
+#     PESOc = if_else(is.na(PESOc), 0, PESOc),
+#     PESOd = if_else(is.na(PESOd), 0, PESOd)
+#   )
+#
+# head(table(utpb$NUMc))  #781250 zeros (OK)
+# head(table(utpb$NUMd))  #818529 zeros (OK)
+# head(table(utpb$PESOc)) #781264 zeros (OK)
+# head(table(utpb$PESOd)) #818582 zeros (OK)
 
 # false zeros
 #no se anoto captura => NUMc=NA
-utpb %>% filter(NUMc == 0 & PESOc > 0) %>% select(NUMc, PESOc) #correct
-#no se anoto peso => PESOc=NA
-utpb %>% filter(NUMc > 0 & PESOc == 0) %>% select(NUMc, PESOc) #14
-utpb <- utpb %>% mutate(PESOc = ifelse(NUMc > 0 & PESOc == 0, NA, PESOc))
-#no se anoto captura => NUMd=NA
-utpb %>% filter(NUMd == 0 & PESOd > 0) %>% select(NUMd, PESOd) #2
-utpb <- utpb %>% mutate(NUMd = ifelse(NUMd == 0 & PESOd > 0, NA, NUMd))
-#no se anoto peso => PESOd=NA
-utpb %>% filter(NUMd > 0 & PESOd == 0) %>% select(NUMd, PESOd) #55
-utpb <- utpb %>% mutate(PESOd = ifelse(NUMd > 0 & PESOd == 0, NA, PESOd))
+# utpb %>% filter(NUMc == 0 & PESOc > 0) %>% select(NUMc, PESOc) #correct
+# #no se anoto peso => PESOc=NA
+# utpb %>% filter(NUMc > 0 & PESOc == 0) %>% select(NUMc, PESOc) #14
+# utpb <- utpb %>% mutate(PESOc = ifelse(NUMc > 0 & PESOc == 0, NA, PESOc))
+# #no se anoto captura => NUMd=NA
+# utpb %>% filter(NUMd == 0 & PESOd > 0) %>% select(NUMd, PESOd) #2
+# utpb <- utpb %>% mutate(NUMd = ifelse(NUMd == 0 & PESOd > 0, NA, NUMd))
+# #no se anoto peso => PESOd=NA
+# utpb %>% filter(NUMd > 0 & PESOd == 0) %>% select(NUMd, PESOd) #55
+# utpb <- utpb %>% mutate(PESOd = ifelse(NUMd > 0 & PESOd == 0, NA, PESOd))
 
-summary(utpb$NUMc)  #0  NAs
-summary(utpb$NUMd)  #2  NAs
-summary(utpb$PESOc) #14 NAs 
-summary(utpb$PESOd) #55 NAs 
+# summary(utpb$NUMc)  #0  NAs
+# summary(utpb$NUMd)  #2  NAs
+# summary(utpb$PESOc) #14 NAs
+# summary(utpb$PESOd) #55 NAs
 
 # combinar datos capturas y descartes
 
-utpb <- utpb %>% mutate(Ntot = NUMc + NUMd, Wtot = (PESOc + PESOd) / 1000)
-
-summary(utpb$Ntot) #2 NAs
-summary(utpb$Wtot) #68 NAs
-length(which(utpb$Wtot==0))
-length(which(utpb$Ntot==0))
-dim(utpb)
+# utpb <- utpb %>% mutate(Ntot = NUMc + NUMd, Wtot = (PESOc + PESOd) / 1000)
+#
+# summary(utpb$Ntot) #2 NAs
+# summary(utpb$Wtot) #68 NAs
+# length(which(utpb$Wtot==0))
+# length(which(utpb$Ntot==0))
+# dim(utpb)
 
 # CPUE
 
-summary(utpb$Piezas)     #0 NAs
-head(table(utpb$Piezas)) 
-
-utpb <- utpb %>%
-  mutate(Piezas = if_else(is.na(Piezas), 0, Piezas)) %>%
-  mutate(Piezas = if_else(Piezas == 0.5, 1, Piezas)) %>%
-  mutate(Piezas = if_else(Piezas == 1.5, 2, Piezas)) %>%
-  mutate(Piezas = if_else(Piezas == 2.5, 3, Piezas)) %>%
-  mutate(Piezas = if_else(Piezas == 3.5, 4, Piezas)) %>%
-  mutate(Piezas = if_else(Piezas == 4.5, 5, Piezas)) %>%
-  mutate(Piezas = if_else(Piezas == 5.5, 6, Piezas)) %>%
-  mutate(
-    CPUEct = Ntot / (Piezas * (Soaktime / 60)),
-    CPUEwt = Wtot / (Piezas * (Soaktime / 60)),
-    CPUEc = Ntot / Piezas,
-    CPUEw = Wtot / Piezas
-  )
-
-p6 <- utpb %>%
-  ggplot(aes(x = CPUEc, y = CPUEw)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = F) +
-  ggtitle("catch/s")
-p7 <- utpb %>%
-  ggplot(aes(x = CPUEct, y = CPUEwt)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = F) +
-  ggtitle("catch/(s*t)")
-
-p6 | p7
+# summary(utpb$Piezas)     #0 NAs
+# head(table(utpb$Piezas))
+#
+# utpb <- utpb %>%
+#   mutate(Piezas = if_else(is.na(Piezas), 0, Piezas)) %>%
+#   mutate(Piezas = if_else(Piezas == 0.5, 1, Piezas)) %>%
+#   mutate(Piezas = if_else(Piezas == 1.5, 2, Piezas)) %>%
+#   mutate(Piezas = if_else(Piezas == 2.5, 3, Piezas)) %>%
+#   mutate(Piezas = if_else(Piezas == 3.5, 4, Piezas)) %>%
+#   mutate(Piezas = if_else(Piezas == 4.5, 5, Piezas)) %>%
+#   mutate(Piezas = if_else(Piezas == 5.5, 6, Piezas)) %>%
+#   mutate(
+#     CPUEct = Ntot / (Piezas * (Soaktime / 60)),
+#     CPUEwt = Wtot / (Piezas * (Soaktime / 60)),
+#     CPUEc = Ntot / Piezas,
+#     CPUEw = Wtot / Piezas
+#   )
+#
+# p6 <- utpb %>%
+#   ggplot(aes(x = CPUEc, y = CPUEw)) +
+#   geom_point() +
+#   geom_smooth(method = "lm", se = F) +
+#   ggtitle("catch/s")
+# p7 <- utpb %>%
+#   ggplot(aes(x = CPUEct, y = CPUEwt)) +
+#   geom_point() +
+#   geom_smooth(method = "lm", se = F) +
+#   ggtitle("catch/(s*t)")
+#
+# p6 | p7
 
 # 3.6. Georeference data --------------------------------------------------
 
@@ -465,6 +466,7 @@ p8 <- utpb %>%
   ggplot(aes(x = Lon, y = Lat, col = ZONA)) + geom_point() + coord_fixed(1.3)
 
 p8
+
 
 #puntos interiores
 utpb %>%
