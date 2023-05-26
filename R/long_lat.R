@@ -1,5 +1,6 @@
-library("R6")
 source("utils.R")
+library("R6")
+library("sf")
 
 LongLatFilter <- R6Class("LongLatFilter",
                          inherit = BaseDataFilter,
@@ -20,7 +21,8 @@ LongLatFilter <- R6Class("LongLatFilter",
                                filter(if_any(long_fields, ~not_na(.)) & if_any(lat_fields, ~not_na(.)))
                              invisible(self)
                            },
-                           transform_geopoints = function() {
+                           to_espg_4326 = function() {
+                                                           #' From whatever to decimal degrees
                              self$clean_df <- self$clean_df %>%
                                mutate(
                                  lon = case_when(
@@ -36,6 +38,22 @@ LongLatFilter <- R6Class("LongLatFilter",
                                ) %>%
                                mutate(lon = private$f_lon(lon)) %>%
                                mutate(lat = private$f_lat(lat))
+                           },
+                           get_quick_map_data = function(fields) {
+                             return(
+                               self$clean_df %>% select_at(.vars = fields)
+                             )
+                           },
+                           from_crs_to_crs = function(source, dest) {
+
+                             self$clean_df <- self$clean_df %>%
+                               st_as_sf(coords = c("lon", "lat")) %>%
+                               st_set_crs(source) %>%
+                               st_transform(dest) %>%
+                               rowwise() %>%
+                               mutate(lon = st_coordinates(geometry)[1]) %>%
+                               mutate(lat = st_coordinates(geometry)[2]) %>%
+                               select(-geometry)
                            }
                          ),
                          private = list(

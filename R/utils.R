@@ -27,10 +27,10 @@ BaseDataFilter <- R6Class("BaseDataFilter", public = list(
   add_to_clean = function(df) {
     self$clean_df <- rbind(self$clean_df, df)
   },
-  set_clean_data = function (df) {
+  set_clean_data = function(df) {
     self$clean_df <- data.frame(df)
   },
-  set_dirty_data = function (df) {
+  set_dirty_data = function(df) {
     self$dirty_df <- data.frame(df)
   }
 ))

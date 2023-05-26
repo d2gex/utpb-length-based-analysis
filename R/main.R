@@ -99,6 +99,8 @@ mute <- db_filter$dirty_df %>%
   verify("Empty field: valor" %in% unique(error))
 
 # (7) Get rows which longitude and latitude pairs have got at least one value
+clean_df <- data.frame(db_filter$clean_df)
+dirty_df <- data.frame(db_filter$dirty_df)
 long_lat_filter <- LongLatFilter$new(db_filter$clean_df, db_filter$dirty_df)
 long_fields <- c('start_long', 'end_long')
 lat_fields <- c('start_lat', 'end_lat')
@@ -122,15 +124,21 @@ mute <- long_lat_filter$clean_df %>%
   verify(nrow(.) == 0)
 
 # (8) Transform longitud and latitude to decimal degree
-long_lat_filter$transform_geopoints()
+long_lat_filter$to_espg_4326()
 
 # --> Make sure that every pair of geopoint has a value
 mute <- long_lat_filter$clean_df %>%
   filter(if_any(c('lon', 'lat'), ~is.na(.))) %>%
   verify(nrow(.) == 0)
 
-# (x) Concatenate clean and dirty dataframes
-db_filter$set_clean_data(long_lat_filter$clean_df)
-db_filter$set_dirty_data(long_lat_filter$dirty_df)
+# (9) Transform coordinates to UTM 29
+crs_esp_4326 <- "+init=epsg:4326"
+crs_esp_25829 <- "+init=epsg:25829"
+long_lat_filter$from_crs_to_crs(crs_esp_4326, crs_esp_25829)
+
+
+# # (x) Concatenate clean and dirty dataframes
+# db_filter$set_clean_data(long_lat_filter$clean_df)
+# db_filter$set_dirty_data(long_lat_filter$dirty_df)
 
 
