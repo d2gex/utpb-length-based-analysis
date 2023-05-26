@@ -3,19 +3,21 @@ source("data_filter.R")
 source("long_lat_filter.R")
 library("tidyverse")
 library("assertr")
+library("data.table")
 
 if (!exists('db_data')) {
-  db_data <- read.csv(DB_TALLAS_PATH)
+  db_data <- read_csv(DB_TALLAS_PATH, locale = locale(encoding = 'latin1'))
 }
 db_filter <- DbDataFilter$new(db_data)
 
 # (1) Rename georeference columns
 col_name_mapping <- list(
-  'LON.inicio' = 'start_long',
-  'LAT.inicio' = 'start_lat',
-  'LON.final' = 'end_long',
-  'LAT.final' = 'end_lat'
+  'LON inicio' = 'start_long',
+  'LAT inicio' = 'start_lat',
+  'LON final' = 'end_long',
+  'LAT final' = 'end_lat'
 )
+
 old_columns <- names(col_name_mapping)
 new_columns <- unname(col_name_mapping)
 db_filter$rename_columns(old_columns, unlist(new_columns))
@@ -55,7 +57,9 @@ db_filter$clean_df <- db_filter$clean_df %>%
   mutate(across(.cols = PUERTO_EMBARQUE,
                 ~ifelse(str_detect(., "Cibrao_Porti"), "San Cribao_Porto de Morás", .))) %>%
   mutate(across(.cols = PUERTO_EMBARQUE,
-                ~ifelse(str_detect(., "Louriz"), "Lourizán (Pontevedra)", .)))
+                ~ifelse(str_detect(., "Louriz"), "Lourizán (Pontevedra)", .))) %>%
+  mutate(across(.cols = valor,
+                ~ifelse(is.na(.), "unknown", .)))
 
 fields <- c('ZONA', 'PUERTO_EMBARQUE', 'ARTE', 'ESPECIE', 'valor')
 db_filter$to_encoding(fields, encoding = 'ASCII', string_transform = "Latin-ASCII")
@@ -95,13 +99,11 @@ db_filter$classify_seafloor(hard_seafloor_options,
 
 mute <- db_filter$clean_df %>%
   assert(function(x) return(x %in% substrata_type), seafloor)
-mute <- db_filter$dirty_df %>%
-  verify("Empty field: valor" %in% unique(error))
 
 # To avoid having to rerun the whole script due to the code below modifies the
 # the clean_df dataframe irreversibly
-clean_df <- data.frame(db_filter$clean_df)
-dirty_df <- data.frame(db_filter$dirty_df)
+clean_df <- copy(db_filter$clean_df)
+dirty_df <- copy(db_filter$dirty_df)
 
 # (7) Get rows which longitude and latitude pairs have got at least one value
 
@@ -135,14 +137,12 @@ mute <- long_lat_filter$clean_df %>%
   filter(if_any(c('lon', 'lat'), ~is.na(.))) %>%
   verify(nrow(.) == 0)
 
-# (9) Transform coordinates to UTM 29
-crs_esp_4326 <- "+init=epsg:4326"
-crs_esp_25829 <- "+init=epsg:25829"
-long_lat_filter$from_crs_to_crs(crs_esp_4326, crs_esp_25829)
+# # (9) Transform coordinates to UTM 29
+# crs_esp_4326 <- "+init=epsg:4326"
+# crs_esp_25829 <- "+init=epsg:25829"
+# long_lat_filter$from_crs_to_crs(crs_esp_4326, crs_esp_25829)
 
 
 # # (x) Concatenate clean and dirty dataframes
 # db_filter$set_clean_data(long_lat_filter$clean_df)
 # db_filter$set_dirty_data(long_lat_filter$dirty_df)
-
-

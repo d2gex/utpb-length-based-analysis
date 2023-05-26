@@ -1,4 +1,5 @@
 library("R6")
+library("data.table")
 
 BaseDataFilter <- R6Class("BaseDataFilter", public = list(
   db_data = NULL,
@@ -6,9 +7,9 @@ BaseDataFilter <- R6Class("BaseDataFilter", public = list(
   dirty_df = data.frame(),
   initialize = function(clean_data, dirty_data) {
     self$db_data <- clean_data
-    self$clean_df <- data.frame(clean_data)
+    self$clean_df <- copy(clean_data)
     if (!missing(dirty_data)) {
-      self$dirty_df <- data.frame(dirty_data)
+      self$dirty_df <- copy(dirty_data)
     }
   },
   add_to_dirty = function(df, error_description) {
@@ -16,7 +17,7 @@ BaseDataFilter <- R6Class("BaseDataFilter", public = list(
     df <- df %>%
       mutate(error = error_description)
     if (nrow(self$dirty_df) == 0) {
-      self$dirty_df <- data.frame(df)
+      self$dirty_df <- copy(df)
     }
     else {
       new_columns <- setdiff(names(df), names(self$dirty_df))
@@ -28,9 +29,9 @@ BaseDataFilter <- R6Class("BaseDataFilter", public = list(
     self$clean_df <- rbind(self$clean_df, df)
   },
   set_clean_data = function(df) {
-    self$clean_df <- data.frame(df)
+    self$clean_df <- copy(df)
   },
   set_dirty_data = function(df) {
-    self$dirty_df <- data.frame(df)
+    self$dirty_df <- copy(df)
   }
 ))
