@@ -1,6 +1,6 @@
 source("config.R")
 source("data_filter.R")
-source("long_lat.R")
+source("long_lat_filter.R")
 library("tidyverse")
 library("assertr")
 
@@ -98,9 +98,13 @@ mute <- db_filter$clean_df %>%
 mute <- db_filter$dirty_df %>%
   verify("Empty field: valor" %in% unique(error))
 
-# (7) Get rows which longitude and latitude pairs have got at least one value
+# To avoid having to rerun the whole script due to the code below modifies the
+# the clean_df dataframe irreversibly
 clean_df <- data.frame(db_filter$clean_df)
 dirty_df <- data.frame(db_filter$dirty_df)
+
+# (7) Get rows which longitude and latitude pairs have got at least one value
+
 long_lat_filter <- LongLatFilter$new(db_filter$clean_df, db_filter$dirty_df)
 long_fields <- c('start_long', 'end_long')
 lat_fields <- c('start_lat', 'end_lat')
