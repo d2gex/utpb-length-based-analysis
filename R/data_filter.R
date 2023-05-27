@@ -25,17 +25,17 @@ DbDataFilter <-
               invisible(self)
             },
             get_rid_of_NaNs_for_all_cols = function(fields) {
-                                                                                    #' Get rid of *all* rows which passed columns do have their values to NaN
-                                                                                    #' @param fields an array of strings
+                                                                                                  #' Get rid of *all* rows which passed columns do have their values to NaN
+                                                                                                  #' @param fields an array of strings
               dirty_data <- self$clean_df %>% filter(if_all(fields, ~is.na(.)))
               self$add_to_dirty(dirty_data, error_description = paste('NaN:', paste(fields, collapse = ' ')))
               self$clean_df <- self$clean_df %>% filter(if_any(fields, ~!is.na(.)))
               invisible(self)
             },
             extract_largada_virada_dates = function() {
-                                                                                    #' Build largada and virada times depending on the columns HorafL, HorafV, FLARG and FVIR
-                                                                                    #' It guesses potential swapping times and correct them. This function assumes that one of the
-                                                                                    #' two fields for largada or virada do have at least a non NaN value.
+                                                                                                  #' Build largada and virada times depending on the columns HorafL, HorafV, FLARG and FVIR
+                                                                                                  #' It guesses potential swapping times and correct them. This function assumes that one of the
+                                                                                                  #' two fields for largada or virada do have at least a non NaN value.
               self$clean_df <- self$clean_df %>%
                 # Get non NA value of the two largada fields; Otherwise the smallest of the two
                 mutate(largada_time = case_when(
@@ -75,6 +75,16 @@ DbDataFilter <-
                 # get rid of aux columns
                 select(-c(aux_largada, aux_virada))
               invisible(self)
+            },
+            adhoc_replacements = function() {
+              # Need to covert this specific case not to lose the value once the encoding and transform occur
+              db_filter$clean_df <- db_filter$clean_df %>%
+                mutate(across(.cols = PUERTO_EMBARQUE,
+                              ~ifelse(str_detect(., "Cibrao_Porti"), "San Cribao_Porto de Morás", .))) %>%
+                mutate(across(.cols = PUERTO_EMBARQUE,
+                              ~ifelse(str_detect(., "Louriz"), "Lourizán (Pontevedra)", .))) %>%
+                mutate(across(.cols = valor,
+                              ~ifelse(is.na(.), "unknown", .)))
             },
             to_encoding = function(fields, encoding, string_transform) {
               self$clean_df <- self$clean_df %>%

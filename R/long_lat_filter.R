@@ -39,11 +39,6 @@ LongLatFilter <- R6Class("LongLatFilter",
                                mutate(lon = private$f_lon(lon)) %>%
                                mutate(lat = private$f_lat(lat))
                            },
-                           get_quick_map_data = function(fields) {
-                             return(
-                               self$clean_df %>% select_at(.vars = fields)
-                             )
-                           },
                            from_crs_to_crs = function(source, dest) {
                              geo_df <- self$clean_df %>%
                                select(lon, lat) %>%

@@ -51,16 +51,7 @@ mute <- db_filter$clean_df %>%
   verify(!do.call(has_all_names, list('aux_largada', 'aux_virada')))
 
 # (5) Convert string-based columns into ASCII.
-
-# Need to covert this specific case not to lose the value once the encoding and transform occurs
-db_filter$clean_df <- db_filter$clean_df %>%
-  mutate(across(.cols = PUERTO_EMBARQUE,
-                ~ifelse(str_detect(., "Cibrao_Porti"), "San Cribao_Porto de Morás", .))) %>%
-  mutate(across(.cols = PUERTO_EMBARQUE,
-                ~ifelse(str_detect(., "Louriz"), "Lourizán (Pontevedra)", .))) %>%
-  mutate(across(.cols = valor,
-                ~ifelse(is.na(.), "unknown", .)))
-
+db_filter$adhoc_replacements()
 fields <- c('ZONA', 'PUERTO_EMBARQUE', 'ARTE', 'ESPECIE', 'valor')
 db_filter$to_encoding(fields, encoding = 'ASCII', string_transform = "Latin-ASCII")
 
@@ -138,9 +129,9 @@ mute <- long_lat_filter$clean_df %>%
   verify(nrow(.) == 0)
 
 # # (9) Transform coordinates to UTM 29
-# crs_esp_4326 <- "+init=epsg:4326"
-# crs_esp_25829 <- "+init=epsg:25829"
-# long_lat_filter$from_crs_to_crs(crs_esp_4326, crs_esp_25829)
+crs_esp_4326 <- "+init=epsg:4326"
+crs_esp_25829 <- "+init=epsg:25829"
+long_lat_filter$from_crs_to_crs(crs_esp_4326, crs_esp_25829)
 
 
 # # (x) Concatenate clean and dirty dataframes

@@ -33,5 +33,10 @@ BaseDataFilter <- R6Class("BaseDataFilter", public = list(
   },
   set_dirty_data = function(df) {
     self$dirty_df <- copy(df)
+  },
+  get_quick_map_data = function(fields) {
+    return(
+      self$clean_df %>% select_at(.vars = fields)
+    )
   }
 ))
