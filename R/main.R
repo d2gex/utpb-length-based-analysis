@@ -1,6 +1,6 @@
 source("config.R")
-source("data_filter.R")
-source("long_lat_filter.R")
+source("common_filter.R")
+source("coords_filter.R")
 library("tidyverse")
 library("assertr")
 library("data.table")
