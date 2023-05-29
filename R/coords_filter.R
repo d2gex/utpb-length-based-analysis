@@ -13,7 +13,15 @@ LongLatFilter <- R6Class("LongLatFilter",
                              # Report any row that has got one pair of geo points as NA
                              dirty_df <- self$clean_df %>%
                                filter(if_all(long_fields, ~is.na(.)) | if_all(lat_fields, ~is.na(.)))
-                             self$add_to_dirty(dirty_df, error_description = paste('Pair long/Lat=NA'))
+                             error_description <- paste('NAN-ALL_PAIRS:(excluded)',
+                                                        '[',
+                                                        paste(long_fields, collapse = ','),
+                                                        '], ',
+                                                        '[',
+                                                        paste(lat_fields, collapse = ','),
+                                                        ']'
+                             )
+                             self$add_to_dirty(dirty_df, error_description = error_description)
 
                              # Get only those rows where there is at least one value in the pair of log
                              # and lat as non-NA
@@ -22,7 +30,7 @@ LongLatFilter <- R6Class("LongLatFilter",
                              invisible(self)
                            },
                            to_espg_4326 = function() {
-                                                                                                                     #' From whatever to decimal degrees
+
                              self$clean_df <- self$clean_df %>%
                                mutate(
                                  lon = case_when(

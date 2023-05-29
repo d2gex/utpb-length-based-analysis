@@ -142,5 +142,5 @@ mute <- long_lat_filter$clean_df %>%
 
 
 # # (x) Concatenate clean and dirty dataframes
-clean_df <- copy (long_lat_filter$clean_df)
+clean_df <- copy(long_lat_filter$clean_df)
 dirty_df <- (long_lat_filter$dirty_df)
