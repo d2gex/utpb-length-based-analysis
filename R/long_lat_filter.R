@@ -22,7 +22,7 @@ LongLatFilter <- R6Class("LongLatFilter",
                              invisible(self)
                            },
                            to_espg_4326 = function() {
-                                                                                        #' From whatever to decimal degrees
+                                                                                                                     #' From whatever to decimal degrees
                              self$clean_df <- self$clean_df %>%
                                mutate(
                                  lon = case_when(

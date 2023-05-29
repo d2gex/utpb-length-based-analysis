@@ -93,8 +93,8 @@ mute <- db_filter$clean_df %>%
 
 # To avoid having to rerun the whole script due to the code below modifies the
 # the clean_df dataframe irreversibly
-clean_df <- copy(db_filter$clean_df)
-dirty_df <- copy(db_filter$dirty_df)
+clean_filter_df <- copy(db_filter$clean_df)
+dirty_filter_df <- copy(db_filter$dirty_df)
 
 # (7) Get rows which longitude and latitude pairs have got at least one value
 
@@ -133,7 +133,14 @@ crs_esp_4326 <- "+init=epsg:4326"
 crs_esp_25829 <- "+init=epsg:25829"
 long_lat_filter$from_crs_to_crs(crs_esp_4326, crs_esp_25829)
 
+lat_clean_df <- copy(long_lat_filter$clean_df)
+lat_dirty_df <- copy(long_lat_filter$dirty_df)
+
+mute <- long_lat_filter$clean_df %>%
+  filter(if_any(c('lon_utm', 'lat_utm'), ~is.na(.))) %>%
+  verify(nrow(.) == 0)
+
 
 # # (x) Concatenate clean and dirty dataframes
-# db_filter$set_clean_data(long_lat_filter$clean_df)
-# db_filter$set_dirty_data(long_lat_filter$dirty_df)
+clean_df <- copy (long_lat_filter$clean_df)
+dirty_df <- (long_lat_filter$dirty_df)
