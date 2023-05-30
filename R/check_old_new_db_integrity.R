@@ -108,21 +108,19 @@ mute <- old_db_tallas %>%
 
 # (4) Get a snapshot of relevant columns up to the maximum date in the old dataframe, which means
 # the entire old dataframe and the new one
+excluded_columns <- c("lon_ini_dec", "lon_fin_dec", "lat_ini_dec", "lat_fin_dec", "lon_dec", "lat_dec", "lon_or", "lat_or")
 
 old_df <- old_db_tallas %>%
   filter(is.na(HorafV) | HorafV <= max_oldb) %>%
-  rename("lon_dec_old" = "lon_dec", "lat_dec_old" = "lat_dec", "lon_or_old" = "lon_or", "lat_or_old" = "lat_or") %>%
-  select(Idlance, lon_dec_old, lat_dec_old, lon_or_old, lat_or_old, ESPECIE, CoD,
-         NUMINDIVS, PESO, SEXO, OVADA, TALLA, Madurez) %>%
-  arrange(Idlance)
+  # rename("lon_dec_old" = "lon_dec", "lat_dec_old" = "lat_dec", "lon_or_old" = "lon_or", "lat_or_old" = "lat_or") %>%
+  select(-excluded_columns) %>%
+  arrange(Idlance, ESPECIE, TALLA)
 
 new_df <- new_db_tallas %>%
   filter(is.na(HorafV) | HorafV <= max_oldb) %>%
-  rename("lon_dec_new" = "lon_dec", "lat_dec_new" = "lat_dec", "lon_or_new" = "lon_or", "lat_or_new" = "lat_or") %>%
-  select(Idlance, lon_dec_new, lat_dec_new, lon_or_new, lat_or_new, ESPECIE, CoD,
-         NUMINDIVS, PESO, SEXO, OVADA, TALLA, Madurez) %>%
-  arrange(Idlance)
-
+  # rename("lon_dec_new" = "lon_dec", "lat_dec_new" = "lat_dec", "lon_or_new" = "lon_or", "lat_or_new" = "lat_or") %>%
+  select(-excluded_columns) %>%
+  arrange(Idlance, ESPECIE, TALLA)
 
 # (5) Remove from the old dataframe the idlances missing in the new dataframe and compare length
 absence_id_lances_new_df <- setdiff(old_df$Idlance, new_df$Idlance)
@@ -136,15 +134,30 @@ mute <- old_cut_df %>%
 testit::assert("After removing idlances from old_df, both dataframes don't yet have the same length",
                nrow(old_df) != nrow(new_df))
 
+testit::assert("Not both dfs have the same idlances",
+               sum(unique(old_cut_df$Idlance)) == sum(unique(new_df$Idlance)))
 
-# Remove from the old tallas dataframe the excess rows that appear in some hauls
-old_cut_df <- old_cut_df %>% rowid_to_column('ID')
-new_df <- new_df %>% rowid_to_column('ID')
-excess_rows_per_idlances <- setdiff(old_cut_df$ID, new_df$ID)
-excess_rows_in_old_db <- old_cut_df %>% filter(ID %in% excess_rows_per_idlances)
-old_cut_df <- old_cut_df %>% filter(!(ID %in% excess_rows_per_idlances))
+id_lances_sample <- sort(sample(unique(old_cut_df$Idlance), 1000))
+diff_length <- c()
+for (id_lance in id_lances_sample) {
 
-mute <- old_cut_df %>%
-  filter(ID %in% excess_rows_per_idlances) %>%
-  verify(nrow(.) == 0)
-mute <- old_cut_df %>% verify(nrow(.) == nrow(new_df))
+  old_test <- old_cut_df %>% select(Idlance) %>% filter(Idlance == id_lance)
+  new_test <- new_df %>% select(Idlance) %>% filter(Idlance == id_lance)
+  if (nrow(old_test) != nrow(new_test)) {
+    diff_length <- append(diff_length, id_lance)
+  }
+}
+
+
+
+
+
+write.csv(head(old_cut_df, 1000), "../data/sensitive/output/old_df.csv")
+write.csv(head(new_df, 1000), "../data/sensitive/output/new_df.csv")
+
+
+
+
+
+
+
