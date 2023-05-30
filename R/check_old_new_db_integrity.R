@@ -122,7 +122,7 @@ new_df <- new_db_tallas %>%
   select(-excluded_columns) %>%
   arrange(Idlance, ESPECIE, TALLA)
 
-# (5) Remove from the old dataframe the idlances missing in the new dataframe and compare length
+# (5) Remove from the old dataframe the missing idlances in the new dataframe and compare length
 absence_id_lances_new_df <- setdiff(old_df$Idlance, new_df$Idlance)
 old_cut_df <- old_df %>%
   filter(!Idlance %in% absence_id_lances_new_df)
@@ -131,13 +131,16 @@ mute <- old_cut_df %>%
   filter(Idlance %in% absence_id_lances_new_df) %>%
   verify(nrow(.) == 0)
 
-testit::assert("After removing idlances from old_df, both dataframes don't yet have the same length",
-               nrow(old_df) != nrow(new_df))
+testit::assert("Old and new dataframes STILL have different number of rows after removing differetn Idlances",
+               nrow(old_cut_df) != nrow(new_df))
 
-testit::assert("Not both dfs have the same idlances",
+testit::assert("Old and new dataframes have the same IdLance identifier",
                sum(unique(old_cut_df$Idlance)) == sum(unique(new_df$Idlance)))
 
+# (6) Get hauls with different number of rows
 id_lances_sample <- sort(sample(unique(old_cut_df$Idlance), 1000))
+id_lances_sample_bk <- copy(id_lances_sample)
+
 diff_length <- c()
 for (id_lance in id_lances_sample) {
 
@@ -147,6 +150,24 @@ for (id_lance in id_lances_sample) {
     diff_length <- append(diff_length, id_lance)
   }
 }
+testit::assert("There are hauls with different number of rows", length(diff_length) > 0)
+
+# (7) Get hauls with for the same haul have different especies
+id_lances_sample <- setdiff(id_lances_sample, diff_length)
+testit::assert("Number of hauls left is total - hauls with different rows",
+               length(id_lances_sample_bk) == length(id_lances_sample) + length(diff_length))
+
+old_test <- old_cut_df %>%
+  filter((Idlance %in% id_lances_sample)) %>%
+  arrange(Idlance, ESPECIE)
+new_test <- new_df %>%
+  filter((Idlance %in% id_lances_sample)) %>%
+  arrange(Idlance, ESPECIE)
+
+testit::assert("Both dataframes have the same length after removing hauls with different rows",
+               nrow(old_test) == nrow(new_test))
+
+
 
 
 
