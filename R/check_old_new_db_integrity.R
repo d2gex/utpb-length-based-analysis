@@ -3,23 +3,8 @@ library("lubridate")
 library("testit")
 library("assertr")
 library("tidyverse")
-
-old_db_capturas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_CAPTURAS_16-05-2018.csv",
-                             locale = locale(encoding = 'latin1'))
-
-if (!exists('old_db_capturas'))
-  old_db_capturas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_CAPTURAS_16-05-2018.csv",
-                               locale = locale(encoding = 'latin1'))
-if (!exists('new_db_capturas'))
-  new_db_capturas <- read_csv2("../data/sensitive/CONSULTA BDP_UTPB_CAPTURAS_12-04-2023.CSV",
-                               locale = locale(encoding = 'latin1'))
-if (!exists('old_db_tallas'))
-  old_db_tallas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_TALLAS_16-05-2018.csv",
-                             locale = locale(encoding = 'latin1'))
-
-if (!exists('new_db_tallas'))
-  new_db_tallas <- read_csv2("../data/sensitive/CONSULTA BDP_UTPB_TALLAS_17-04-2023_.csv",
-                             locale = locale(encoding = 'latin1'))
+library("openxlsx")
+library("quanteda")
 
 fLat <- function(x) {
   trunc(x / 100000) + ((x - (100000 * trunc(x / 100000))) / 1000) / 60
@@ -68,13 +53,72 @@ prepare_df <- function(df) {
   return(df)
 }
 
-build_coords_graph <- function(df) {
+build_coords_graph <- function(df, title) {
   g <- df %>%
     ggplot(aes(x = lon_dec, y = lat_dec, col = ZONA)) +
     geom_point() +
-    coord_fixed(1.3)
+    coord_fixed(1.3) +
+    ggtitle(title)
   return(g)
 }
+
+get_diff_between_columns <- function(id_lances, column_pairs, df_1, df_2) {
+
+  col_with_diff_id_lances <- list()
+  for (name in names(column_pairs)) {
+    print(paste("------>Processing column '", name, "' ..."))
+    diff_id_lances <- c()
+    for (id_lance in id_lances) {
+      tested_columns <- column_pairs[[name]]
+      df_1_test <- df_1 %>%
+        select_at(.vars = tested_columns) %>%
+        filter(Idlance == id_lance)
+
+      df_2_test <- df_2 %>%
+        select_at(.vars = tested_columns) %>%
+        filter(Idlance == id_lance)
+      if (!isTRUE(all.equal(df_1_test, df_2_test))) {
+        diff_id_lances <- append(diff_id_lances, id_lance)
+      }
+    }
+    col_with_diff_id_lances[[name]] <- diff_id_lances
+    print(paste("------> End"))
+  }
+  return(col_with_diff_id_lances)
+}
+
+build_sheet_list_of_different_cols <- function(diff_id_lances, df_1, df_2) {
+
+  sheets_list <- list()
+  for (name in names(diff_id_lances)) {
+    subset_df_1 <- df_1 %>%
+      filter(Idlance %in% diff_id_lances[[name]]) %>%
+      select(Idlance, !!name)
+    subset_df_2 <- df_2 %>%
+      filter(Idlance %in% diff_id_lances[[name]]) %>%
+      select(Idlance, !!name)
+    subset_df_1[paste(name, '_new')] <- subset_df_2[name]
+    sheets_list[[name]] <- copy(subset_df_1)
+  }
+  return(sheets_list)
+
+}
+
+# (0) Read different stylesheets
+
+if (!exists('old_db_capturas'))
+  old_db_capturas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_CAPTURAS_16-05-2018.csv",
+                               locale = locale(encoding = 'latin1'))
+if (!exists('new_db_capturas'))
+  new_db_capturas <- read_csv2("../data/sensitive/CONSULTA BDP_UTPB_CAPTURAS_12-04-2023.CSV",
+                               locale = locale(encoding = 'latin1'))
+if (!exists('old_db_tallas'))
+  old_db_tallas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_TALLAS_16-05-2018.csv",
+                             locale = locale(encoding = 'latin1'))
+
+if (!exists('new_db_tallas'))
+  new_db_tallas <- read_csv2("../data/sensitive/CONSULTA BDP_UTPB_TALLAS_17-04-2023_.csv",
+                             locale = locale(encoding = 'latin1'))
 
 # (1) Rename georeference columns
 col_name_mapping <- list(
@@ -156,40 +200,41 @@ for (id_lance in id_lances_sample) {
 }
 testit::assert("There are hauls with different number of rows", length(diff_length) > 0)
 
-# (7) Get hauls for that a serious of columns exactly the same
+# (7) Get hauls for a serious of columns exactly the same
 id_lances_sample <- setdiff(id_lances_sample, diff_length)
 testit::assert("Number of hauls left is total - hauls with different rows",
                length(id_lances_sample_bk) == length(id_lances_sample) + length(diff_length))
 
-string_or_integer_cols <- c('Idlance', 'ESPECIE', 'PUERTO_EMBARQUE',  'Madurez',
-                            'NUMINDIVS',  'N TRIPUS', 'ARTE', 'Piezas', 'ZONA', 'OBSER1')
+sought_columns <- c('Idlance', 'ESPECIE', 'PUERTO_EMBARQUE', 'Madurez',
+                    'NUMINDIVS', 'N TRIPUS', 'ARTE', 'Piezas', 'ZONA', 'OBSER1')
 
 old_test <- old_cut_df %>%
-  select_at(.vars = string_or_integer_cols) %>%
+  select_at(.vars = sought_columns) %>%
   filter((Idlance %in% id_lances_sample)) %>%
-  arrange_at(.vars = string_or_integer_cols)
+  arrange_at(.vars = sought_columns)
 new_test <- new_df %>%
-  select_at(.vars = string_or_integer_cols) %>%
+  select_at(.vars = sought_columns) %>%
   filter((Idlance %in% id_lances_sample)) %>%
-  arrange_at(.vars = string_or_integer_cols)
+  arrange_at(.vars = sought_columns)
 
 testit::assert("Both dataframes have the same length after removing hauls with different rows",
                nrow(old_test) == nrow(new_test))
 testit::assert("Old and new dataframe have the same especies", all.equal(old_test, new_test))
 
-# (8)
+# (8) Find Idlances for group of columns that have different values
 
-
-
-
-# write.csv(head(old_cut_df, 1000), "../data/sensitive/output/old_df.csv")
-# write.csv(head(new_df, 1000), "../data/sensitive/output/new_df.csv")
-
-
-
-
-
-
-
-
-
+potential_diff_columns <- list(
+  'TALLA' = c('Idlance', 'TALLA'),
+  'PESO' = c('Idlance', 'PESO'),
+  'OVADA' = c('Idlance', 'OVADA'),
+  'Colorhuevos' = c('Idlance', 'Colorhuevos'),
+  'CoD' = c('Idlance', 'CoD'),
+  'HorafV' = c('Idlance', 'HorafV'),
+  'HorafL' = c('Idlance', 'HorafL'),
+  'FVIR' = c('Idlance', 'FVIR'),
+  'FLARG' = c('Idlance', 'FLARG'),
+  'mcarte1' = c('Idlance', 'mcarte1')
+)
+columns_and_diff_idlances <- get_diff_between_columns(id_lances_sample, potential_diff_columns, old_cut_df, new_df)
+excel_sheets_list <- build_sheet_list_of_different_cols(columns_and_diff_idlances, old_cut_df, new_df)
+write.xlsx(excel_sheets_list, file = "../data/sensitive/output/old_new_db_differences.xlsx")
