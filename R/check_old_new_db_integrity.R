@@ -5,7 +5,7 @@ library("assertr")
 library("tidyverse")
 
 old_db_capturas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_CAPTURAS_16-05-2018.csv",
-                               locale = locale(encoding = 'latin1'))
+                             locale = locale(encoding = 'latin1'))
 
 if (!exists('old_db_capturas'))
   old_db_capturas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_CAPTURAS_16-05-2018.csv",
@@ -144,37 +144,48 @@ id_lances_sample_bk <- copy(id_lances_sample)
 diff_length <- c()
 for (id_lance in id_lances_sample) {
 
-  old_test <- old_cut_df %>% select(Idlance) %>% filter(Idlance == id_lance)
-  new_test <- new_df %>% select(Idlance) %>% filter(Idlance == id_lance)
+  old_test <- old_cut_df %>%
+    select(Idlance) %>%
+    filter(Idlance == id_lance)
+  new_test <- new_df %>%
+    select(Idlance) %>%
+    filter(Idlance == id_lance)
   if (nrow(old_test) != nrow(new_test)) {
     diff_length <- append(diff_length, id_lance)
   }
 }
 testit::assert("There are hauls with different number of rows", length(diff_length) > 0)
 
-# (7) Get hauls with for the same haul have different especies
+# (7) Get hauls for that a serious of columns exactly the same
 id_lances_sample <- setdiff(id_lances_sample, diff_length)
 testit::assert("Number of hauls left is total - hauls with different rows",
                length(id_lances_sample_bk) == length(id_lances_sample) + length(diff_length))
 
+string_or_integer_cols <- c('Idlance', 'ESPECIE', 'PUERTO_EMBARQUE',  'Madurez',
+                            'NUMINDIVS',  'N TRIPUS', 'ARTE', 'Piezas', 'ZONA', 'OBSER1')
+
 old_test <- old_cut_df %>%
+  select_at(.vars = string_or_integer_cols) %>%
   filter((Idlance %in% id_lances_sample)) %>%
-  arrange(Idlance, ESPECIE)
+  arrange_at(.vars = string_or_integer_cols)
 new_test <- new_df %>%
+  select_at(.vars = string_or_integer_cols) %>%
   filter((Idlance %in% id_lances_sample)) %>%
-  arrange(Idlance, ESPECIE)
+  arrange_at(.vars = string_or_integer_cols)
 
 testit::assert("Both dataframes have the same length after removing hauls with different rows",
                nrow(old_test) == nrow(new_test))
+testit::assert("Old and new dataframe have the same especies", all.equal(old_test, new_test))
+
+# (8)
 
 
 
 
+# write.csv(head(old_cut_df, 1000), "../data/sensitive/output/old_df.csv")
+# write.csv(head(new_df, 1000), "../data/sensitive/output/new_df.csv")
 
 
-
-write.csv(head(old_cut_df, 1000), "../data/sensitive/output/old_df.csv")
-write.csv(head(new_df, 1000), "../data/sensitive/output/new_df.csv")
 
 
 
