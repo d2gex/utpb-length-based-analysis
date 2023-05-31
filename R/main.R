@@ -6,7 +6,7 @@ library("assertr")
 library("data.table")
 
 if (!exists('db_data')) {
-  db_data <- read_csv(DB_TALLAS_PATH, locale = locale(encoding = 'latin1'))
+  db_data <- read_csv2(DB_TALLAS_PATH, locale = locale(encoding = 'latin1'))
 }
 db_filter <- DbDataFilter$new(db_data)
 

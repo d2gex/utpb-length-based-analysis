@@ -6,103 +6,7 @@ library("tidyverse")
 library("openxlsx")
 library("quanteda")
 
-fLat <- function(x) {
-  trunc(x / 100000) + ((x - (100000 * trunc(x / 100000))) / 1000) / 60
-}
 
-fLon <- function(x) {
-  -(trunc(x / 100000) + ((x - (
-    100000 * trunc(x / 100000)
-  )) / 1000) / 60)
-}
-
-prepare_df <- function(df) {
-  df <- df %>%
-    mutate(
-      lon_ini_dec = fLon(start_long),
-      lon_fin_dec = fLon(end_long),
-      lat_ini_dec = fLat(start_lat),
-      lat_fin_dec = fLat(end_lat),
-    ) %>%
-    mutate(
-      lon_dec = case_when(
-        is.na(lon_ini_dec) ~ lon_fin_dec,
-        .default = lon_fin_dec
-      ),
-      lat_dec = case_when(
-        is.na(lat_ini_dec) ~ lat_fin_dec,
-        .default = lat_ini_dec
-      )
-    ) %>%
-    mutate(
-      lon_or = case_when(
-        is.na(start_long) ~ end_long,
-        .default = start_long
-      ),
-      lat_or = case_when(
-        is.na(start_lat) ~ end_lat,
-        .default = start_lat
-      )
-    ) %>%
-    mutate(
-      HorafL = as.POSIXct(HorafL, format = "%d/%m/%Y %H:%M", tz = "UTC"),
-      HorafV = as.POSIXct(HorafV, format = "%d/%m/%Y %H:%M", tz = "UTC"),
-      FLARG = as.POSIXct(FLARG, format = "%d/%m/%Y %H:%M", tz = "UTC"),
-      FVIR = as.POSIXct(FVIR, format = "%d/%m/%Y %H:%M", tz = "UTC")
-    )
-  return(df)
-}
-
-build_coords_graph <- function(df, title) {
-  g <- df %>%
-    ggplot(aes(x = lon_dec, y = lat_dec, col = ZONA)) +
-    geom_point() +
-    coord_fixed(1.3) +
-    ggtitle(title)
-  return(g)
-}
-
-get_diff_between_columns <- function(id_lances, column_pairs, df_1, df_2) {
-
-  col_with_diff_id_lances <- list()
-  for (name in names(column_pairs)) {
-    print(paste("------>Processing column '", name, "' ..."))
-    diff_id_lances <- c()
-    for (id_lance in id_lances) {
-      tested_columns <- column_pairs[[name]]
-      df_1_test <- df_1 %>%
-        select_at(.vars = tested_columns) %>%
-        filter(Idlance == id_lance)
-
-      df_2_test <- df_2 %>%
-        select_at(.vars = tested_columns) %>%
-        filter(Idlance == id_lance)
-      if (!isTRUE(all.equal(df_1_test, df_2_test))) {
-        diff_id_lances <- append(diff_id_lances, id_lance)
-      }
-    }
-    col_with_diff_id_lances[[name]] <- diff_id_lances
-    print(paste("------> End"))
-  }
-  return(col_with_diff_id_lances)
-}
-
-build_sheet_list_of_different_cols <- function(diff_id_lances, df_1, df_2) {
-
-  sheets_list <- list()
-  for (name in names(diff_id_lances)) {
-    subset_df_1 <- df_1 %>%
-      filter(Idlance %in% diff_id_lances[[name]]) %>%
-      select(Idlance, !!name)
-    subset_df_2 <- df_2 %>%
-      filter(Idlance %in% diff_id_lances[[name]]) %>%
-      select(Idlance, !!name)
-    subset_df_1[paste(name, '_new')] <- subset_df_2[name]
-    sheets_list[[name]] <- copy(subset_df_1)
-  }
-  return(sheets_list)
-
-}
 
 # (0) Read different stylesheets
 
@@ -181,11 +85,13 @@ testit::assert("Old and new dataframes STILL have different number of rows after
 testit::assert("Old and new dataframes have the same IdLance identifier",
                sum(unique(old_cut_df$Idlance)) == sum(unique(new_df$Idlance)))
 
+
+
 # (6) Get hauls with different number of rows
 id_lances_sample <- sort(sample(unique(old_cut_df$Idlance), 1000))
 id_lances_sample_bk <- copy(id_lances_sample)
 
-diff_length <- c()
+hauls_with_different_length <- c()
 for (id_lance in id_lances_sample) {
 
   old_test <- old_cut_df %>%
@@ -195,15 +101,15 @@ for (id_lance in id_lances_sample) {
     select(Idlance) %>%
     filter(Idlance == id_lance)
   if (nrow(old_test) != nrow(new_test)) {
-    diff_length <- append(diff_length, id_lance)
+    hauls_with_different_length <- append(hauls_with_different_length, id_lance)
   }
 }
-testit::assert("There are hauls with different number of rows", length(diff_length) > 0)
+testit::assert("There are hauls with different number of rows", length(hauls_with_different_length) > 0)
 
 # (7) Get hauls for a serious of columns exactly the same
-id_lances_sample <- setdiff(id_lances_sample, diff_length)
+id_lances_sample <- setdiff(id_lances_sample, hauls_with_different_length)
 testit::assert("Number of hauls left is total - hauls with different rows",
-               length(id_lances_sample_bk) == length(id_lances_sample) + length(diff_length))
+               length(id_lances_sample_bk) == length(id_lances_sample) + length(hauls_with_different_length))
 
 sought_columns <- c('Idlance', 'ESPECIE', 'PUERTO_EMBARQUE', 'Madurez',
                     'NUMINDIVS', 'N TRIPUS', 'ARTE', 'Piezas', 'ZONA', 'OBSER1')
@@ -236,5 +142,9 @@ potential_diff_columns <- list(
   'mcarte1' = c('Idlance', 'mcarte1')
 )
 columns_and_diff_idlances <- get_diff_between_columns(id_lances_sample, potential_diff_columns, old_cut_df, new_df)
+columns_and_diff_idlances[['Piezas']] <- absence_id_lances_new_df
+if (length(hauls_with_different_length) > 0) {
+  columns_and_diff_idlances[['ESPECIE']] <- hauls_with_different_length
+}
 excel_sheets_list <- build_sheet_list_of_different_cols(columns_and_diff_idlances, old_cut_df, new_df)
 write.xlsx(excel_sheets_list, file = "../data/sensitive/output/old_new_db_differences.xlsx")
