@@ -135,6 +135,7 @@ build_sheet_list_of_different_cols <- function(diff_id_lances, df_1, df_2) {
       filter(Idlance %in% diff_id_lances[[name]]) %>%
       select(Idlance, !!name)
 
+    id_lances <- subset_df_1$Idlance
     col_old <- subset_df_1[[name]]
     col_new <- subset_df_2[[name]]
 
@@ -148,14 +149,19 @@ build_sheet_list_of_different_cols <- function(diff_id_lances, df_1, df_2) {
         fill <- '-Inf'
       }
       equal_col_lengths <- make_cols_same_length(col_1 = col_old, col_2 = col_new, fill = fill)
-      col_old <- equal_col_lengths[[col_1]]
-      col_new <- equal_col_lengths[[col_2]]
+      col_old <- equal_col_lengths[['col_1']]
+      col_new <- equal_col_lengths[['col_2']]
+      if (nrow(subset_df_2) > nrow(subset_df_1)) {
+        id_lances <- subset_df_2$Idlance
+      }
     }
 
     # (3) Create the dataframe and add it to the sheet list
-    df <- data.frame()
-    df[name] <- col_old
-    df[paste0(name, '_new')] <- col_new
+
+    df <- data.frame(matrix(ncol = 3, nrow = length(col_old), dimnames = list(NULL, c('Idlance', name, paste0(name, '_new')))))
+    df$Idlance <- id_lances
+    df[[name]] <- col_old
+    df[[paste0(name, '_new')]] <- col_new
     sheets_list[[name]] <- df
   }
   return(sheets_list)

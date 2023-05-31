@@ -7,7 +7,6 @@ library("openxlsx")
 library("quanteda")
 
 
-
 # (0) Read different stylesheets
 
 if (!exists('old_db_capturas'))
@@ -86,7 +85,6 @@ testit::assert("Old and new dataframes have the same IdLance identifier",
                sum(unique(old_cut_df$Idlance)) == sum(unique(new_df$Idlance)))
 
 
-
 # (6) Get hauls with different number of rows
 id_lances_sample <- sort(sample(unique(old_cut_df$Idlance), 1000))
 id_lances_sample_bk <- copy(id_lances_sample)
@@ -129,6 +127,7 @@ testit::assert("Old and new dataframe have the same especies", all.equal(old_tes
 
 # (8) Find Idlances for group of columns that have different values
 
+# ---> (8.1) Get hauls of columns which have same length but different values in the old vs new dataframes
 potential_diff_columns <- list(
   'TALLA' = c('Idlance', 'TALLA'),
   'PESO' = c('Idlance', 'PESO'),
@@ -142,9 +141,20 @@ potential_diff_columns <- list(
   'mcarte1' = c('Idlance', 'mcarte1')
 )
 columns_and_diff_idlances <- get_diff_between_columns(id_lances_sample, potential_diff_columns, old_cut_df, new_df)
-columns_and_diff_idlances[['Piezas']] <- absence_id_lances_new_df
+
+
+# ---> (8.2) Add Idlance of hauls that have different number of rows for the old and new dataframe
 if (length(hauls_with_different_length) > 0) {
   columns_and_diff_idlances[['ESPECIE']] <- hauls_with_different_length
 }
+
+# --> Get the actual data for all hauls with problems 8.1 + 8.2
 excel_sheets_list <- build_sheet_list_of_different_cols(columns_and_diff_idlances, old_cut_df, new_df)
+
+# --> (8.3) Now get the actual data for hauls that are absent in the new dataframe
+columns_and_diff_idlances <- list(Piezas = absence_id_lances_new_df)
+excel_sheets_list_absent_hauls <- build_sheet_list_of_different_cols(columns_and_diff_idlances,
+                                                                     old_db_tallas %>% select(Idlance, Piezas),
+                                                                     new_df)
+excel_sheets_list[['Piezas']] <- excel_sheets_list_absent_hauls[['Piezas']]  # Terrible code, refactor
 write.xlsx(excel_sheets_list, file = "../data/sensitive/output/old_new_db_differences.xlsx")
