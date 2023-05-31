@@ -26,3 +26,16 @@ test_that("Balance out STRING dataframe with different length", {
   expect_equal(results$col_1, df_x$str)
   expect_equal(results$col_2, c(df_y$str, fill))
 })
+
+test_that("Do nothing for dataframes of equal length", {
+  df_x <- data.frame(
+    str = c('str1', 'str2')
+  )
+  df_y <- data.frame(
+    str = c('str1', 'str2')
+  )
+  fill <- '-Inf'
+  results <- make_cols_same_length(df_x$str, df_y$str, fill)
+  expect_equal(results$col_1, df_x$str)
+  expect_equal(results$col_2, df_y$str)
+})
