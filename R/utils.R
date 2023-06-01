@@ -51,7 +51,7 @@ fLon <- function(x) {
   )) / 1000) / 60)
 }
 
-prepare_df <- function(df) {
+prepare_geo_and_time_cols <- function(df) {
   df <- df %>%
     mutate(
       lon_ini_dec = fLon(start_long),
@@ -97,14 +97,14 @@ build_coords_graph <- function(df, title) {
   return(g)
 }
 
-get_diff_between_columns <- function(id_lances, column_pairs, df_1, df_2) {
+get_lances_for_columns_with_different_values <- function(id_lances, column_pairs, df_1, df_2) {
 
   col_with_diff_id_lances <- list()
-  for (name in names(column_pairs)) {
-    print(paste("------>Processing column '", name, "' ..."))
+  for (col_name in names(column_pairs)) {
+    print(paste("------>Processing column '", col_name, "' ..."))
     diff_id_lances <- c()
     for (id_lance in id_lances) {
-      tested_columns <- column_pairs[[name]]
+      tested_columns <- column_pairs[[col_name]]
       df_1_test <- df_1 %>%
         select_at(.vars = tested_columns) %>%
         filter(Idlance == id_lance)
@@ -116,32 +116,32 @@ get_diff_between_columns <- function(id_lances, column_pairs, df_1, df_2) {
         diff_id_lances <- append(diff_id_lances, id_lance)
       }
     }
-    col_with_diff_id_lances[[name]] <- diff_id_lances
+    col_with_diff_id_lances[[col_name]] <- diff_id_lances
     print(paste("------> End"))
   }
   return(col_with_diff_id_lances)
 }
 
-build_sheet_list_of_different_cols <- function(diff_id_lances, df_1, df_2) {
+build_list_of_column_with_associated_data <- function(lances_per_column, df_1, df_2) {
 
   sheets_list <- list()
-  for (name in names(diff_id_lances)) {
+  for (col_name in names(lances_per_column)) {
 
     # (1) Get all rows that which IdLance matches a list of lances
     subset_df_1 <- df_1 %>%
-      filter(Idlance %in% diff_id_lances[[name]]) %>%
-      select(Idlance, !!name)
+      filter(Idlance %in% lances_per_column[[col_name]]) %>%
+      select(Idlance, !!col_name)
     subset_df_2 <- df_2 %>%
-      filter(Idlance %in% diff_id_lances[[name]]) %>%
-      select(Idlance, !!name)
+      filter(Idlance %in% lances_per_column[[col_name]]) %>%
+      select(Idlance, !!col_name)
 
     id_lances <- subset_df_1$Idlance
-    col_old <- subset_df_1[[name]]
-    col_new <- subset_df_2[[name]]
+    col_old <- subset_df_1[[col_name]]
+    col_new <- subset_df_2[[col_name]]
 
     # (2) Ensure columns of old and new dataframe match in length by padding in the columns with less elements
     if (length(col_old) != length(col_new)) {
-      col_type <- get_column_data_type(subset_df_1, name)
+      col_type <- get_column_data_type(subset_df_1, col_name)
       if (col_type == 'numeric') {
         fill <- -Inf
       }
@@ -157,12 +157,11 @@ build_sheet_list_of_different_cols <- function(diff_id_lances, df_1, df_2) {
     }
 
     # (3) Create the dataframe and add it to the sheet list
-
-    df <- data.frame(matrix(ncol = 3, nrow = length(col_old), dimnames = list(NULL, c('Idlance', name, paste0(name, '_new')))))
+    df <- data.frame(matrix(ncol = 3, nrow = length(col_old), dimnames = list(NULL, c('Idlance', col_name, paste0(col_name, '_new')))))
     df$Idlance <- id_lances
-    df[[name]] <- col_old
-    df[[paste0(name, '_new')]] <- col_new
-    sheets_list[[name]] <- df
+    df[[col_name]] <- col_old
+    df[[paste0(col_name, '_new')]] <- col_new
+    sheets_list[[col_name]] <- df
   }
   return(sheets_list)
 
@@ -196,4 +195,8 @@ make_cols_same_length <- function(col_1, col_2, fill) {
     return(list(col_1 = col_max, col_2 = col_min))
   }
   return(list(col_1 = col_min, col_2 = col_max))
+}
+
+get_name <- function(var_name) {
+  return (deparse(substitute(var_name)))
 }
