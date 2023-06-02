@@ -1,5 +1,6 @@
 library("R6")
 library("data.table")
+library("sf")
 
 BaseDataFilter <- R6Class("BaseDataFilter", public = list(
   db_data = NULL,
@@ -198,5 +199,27 @@ make_cols_same_length <- function(col_1, col_2, fill) {
 }
 
 get_name <- function(var_name) {
-  return (deparse(substitute(var_name)))
+  return(deparse(substitute(var_name)))
+}
+
+from_crs_to_crs <- function(df, lon, lat, crs_source, crs_dest) {
+
+  coords <- c(lon, lat)
+  df <- df %>%
+    select_at(.vars = coords) %>%
+    st_as_sf(coords = coords) %>%
+    st_set_crs(crs_source) %>%
+    st_transform(crs_dest) %>%
+    mutate(!!lon := sf::st_coordinates(.)[, 2],
+           !!lat := sf::st_coordinates(.)[, 1])
+
+  result <- data.frame(
+    matrix(ncol = 2,
+           nrow = nrow(df),
+           dimnames = list(NULL, c(lon, lat))
+    ))
+  result[lon] <- df[lon]
+  result[lat] <- df[lat]
+  return(result)
+
 }

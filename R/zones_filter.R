@@ -117,6 +117,3 @@ ZoneFilter <- R6Class("ZoneFilter",
 
                       )
 )
-
-
-
