@@ -10,8 +10,8 @@ ZoneFilter <- R6Class("ZoneFilter",
                           self$admin_zones <- NewAdministrativeZones$new()
                         },
                         define_admin_zones = function() {
-                          private$transform_named_zones_to_admin_zones()
                           private$define_new_admin_zones()
+                          private$transform_named_zones_to_admin_zones()
                           private$define_oceanographic_zones()
                           private$define_ices_zone()
                           invisible(self)
@@ -22,15 +22,16 @@ ZoneFilter <- R6Class("ZoneFilter",
                           self$clean_df <- self$clean_df %>%
                             mutate(
                               admin_zone = case_when(
-                                ZONA == "Zona I - Vigo" ~ 1,
-                                ZONA == "Zona II - Pontevedra" ~ 2,
-                                ZONA == "Zona III - Arousa" ~ 3,
-                                ZONA == "Zona IV - Muros" ~ 4,
-                                ZONA == "Zona V - Fisterra" ~ 5,
-                                ZONA == "Zona VI - Costa da Morte" ~ 6,
-                                ZONA == "Zona VII - Corunha-Ferrol" ~ 7,
-                                ZONA == "Zona VIII - Cedeira" ~ 8,
-                                .default = 9
+                                is.na(admin_zone) & ZONA == "Zona I - Vigo" ~ 1,
+                                is.na(admin_zone) & ZONA == "Zona II - Pontevedra" ~ 2,
+                                is.na(admin_zone) & ZONA == "Zona III - Arousa" ~ 3,
+                                is.na(admin_zone) & ZONA == "Zona IV - Muros" ~ 4,
+                                is.na(admin_zone) & ZONA == "Zona V - Fisterra" ~ 5,
+                                is.na(admin_zone) & ZONA == "Zona VI - Costa da Morte" ~ 6,
+                                is.na(admin_zone) & ZONA == "Zona VII - Coruna-Ferrol" ~ 7,
+                                is.na(admin_zone) & ZONA == "Zona VIII - Cedeira" ~ 8,
+                                is.na(admin_zone) & ZONA == "Zona IX - Mariña lucense" ~ 9,
+                                .default = admin_zone
                               )
                             )
                         },
