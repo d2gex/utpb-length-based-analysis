@@ -91,7 +91,7 @@ ZoneFilter <- R6Class("ZoneFilter",
                                 lon > -8.68 &
                                   lon <= -8.5 &
                                   lat > admin_zones.Soavelalat &
-                                  lat ~ 1,
+                                  lat < 42.36 ~ 1,
                                 # ---> (Interior Ria Vigo 2)
                                 lon > -8.74 &
                                   lon <= -8.67 &
