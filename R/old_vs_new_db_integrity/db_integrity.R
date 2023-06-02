@@ -60,17 +60,19 @@ DbVersionComparator <- R6Class("DbVersionComparator", public = list(
     old_df <- self$old_db_data %>%
       filter(is.na(HorafV) | HorafV <= max_oldb) %>%
       select(-self$integrity_data$excluded_columns) %>%
-      arrange(Idlance, ESPECIE, TALLA)
+      arrange(Idlance)
 
     new_df <- self$new_db_data %>%
       filter(is.na(HorafV) | HorafV <= max_oldb) %>%
       select(-self$integrity_data$excluded_columns) %>%
-      arrange(Idlance, ESPECIE, TALLA)
+      arrange(Idlance)
     return(list(old_df = old_df, new_df = new_df))
   },
   detract_absent_id_laces_in_new_db = function(old_df, new_df) {
     # (5) Remove from the old dataframe the missing idlances in the new dataframe and compare length
+
     absence_id_lances_new_df <- setdiff(old_df$Idlance, new_df$Idlance)
+    testit::assert(length(setdiff(new_df$Idlance, old_df$Idlance)) == 0)
     old_cut_df <- old_df %>%
       filter(!Idlance %in% absence_id_lances_new_df)
 
@@ -146,80 +148,10 @@ DbVersionComparator <- R6Class("DbVersionComparator", public = list(
       lances_with_diff_num_rows = lances_with_diff_num_rows,
       old_df = old_df,
       old_cut_df = old_cut_df,
-      new_df = new_df
+      new_df = new_df,
+      max_oldb = max_oldb
     ))
   }
 
 ))
 
-# run_db_comparator <- function(old_db_data,
-#                               new_db_data,
-#                               integrity_data,
-#                               max_sample) {
-
-output_path <- "../data/sensitive/output/old_new_db_differences.xlsx"
-# if (!exists('old_db_capturas'))
-#   old_db_capturas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_CAPTURAS_16-05-2018.csv",
-#                                locale = locale(encoding = 'latin1'))
-# if (!exists('new_db_capturas'))
-#   new_db_capturas <- read_csv2("../data/sensitive/CONSULTA BDP_UTPB_CAPTURAS_12-04-2023.CSV",
-#                                locale = locale(encoding = 'latin1'))
-if (!exists('old_db_tallas'))
-  old_db_tallas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_TALLAS_16-05-2018.csv",
-                             locale = locale(encoding = 'latin1'))
-
-if (!exists('new_db_tallas'))
-  new_db_tallas <- read_csv2("../data/sensitive/CONSULTA BDP_UTPB_TALLAS_17-04-2023_.csv",
-                             locale = locale(encoding = 'latin1'))
-integrity_data <- IntegrityData$new()
-integrity_data$sought_columns <- c('Idlance', 'ESPECIE', 'PUERTO_EMBARQUE', 'Madurez',
-                                   'NUMINDIVS', 'N TRIPUS', 'ARTE', 'Piezas', 'ZONA', 'OBSER1')
-integrity_data$potential_diff_columns <- list(
-  'TALLA' = c('Idlance', 'TALLA'),
-  'PESO' = c('Idlance', 'PESO'),
-  'OVADA' = c('Idlance', 'OVADA'),
-  'Colorhuevos' = c('Idlance', 'Colorhuevos'),
-  'CoD' = c('Idlance', 'CoD'),
-  'HorafV' = c('Idlance', 'HorafV'),
-  'HorafL' = c('Idlance', 'HorafL'),
-  'FVIR' = c('Idlance', 'FVIR'),
-  'FLARG' = c('Idlance', 'FLARG'),
-  'mcarte1' = c('Idlance', 'mcarte1')
-)
-db_comparator <- DbVersionComparator$new(old_db_tallas, new_db_tallas, integrity_data, 1000)
-result <- db_comparator$run()
-# Get data that need to be reported because integrity issues
-
-# ---> Get lances associated to columns which have same length
-# but different values in the old vs new dataframes
-lances_per_column <- get_lances_for_columns_with_different_values(result$id_lances_sample,
-                                                                  integrity_data$potential_diff_columns,
-                                                                  result$old_cut_df,
-                                                                  result$new_df)
-# --->  Add lances that have different number of rows for the old and new dataframe
-if (length(result$hauls_with_different_length) > 0) {
-  lances_per_column[['ESPECIE']] <- result$hauls_with_different_length
-}
-columns_with_associated_data <- build_list_of_column_with_associated_data(lances_per_column,
-                                                                          result$old_cut_df,
-                                                                          result$new_df)
-
-
-# -->  Now get the actual data for lances that are absent in the new dataframe
-lances_per_column <- list(Piezas = result$absent_lances)
-added_columns_data <- build_list_of_column_with_associated_data(lances_per_column,
-                                                                old_db_tallas %>% select(Idlance, Piezas),
-                                                                result$new_df)
-columns_with_associated_data[['Piezas']] <- added_columns_data[['Piezas']]
-# return(columns_with_associated_data)
-# }
-
-# run <- function() {
-# (0) Read different stylesheets
-
-
-# excel_data <- run_db_comparator(old_db_tallas, new_db_tallas, integrity_data, 1000)
-write.xlsx(columns_with_associated_data, file = output_path)
-
-
-# }
