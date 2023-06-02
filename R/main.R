@@ -1,16 +1,20 @@
-source("config.R")
-source("common_filter.R")
-source("coords_filter.R")
 library("tidyverse")
 library("assertr")
 library("data.table")
+library("logger")
+source("config.R")
+source("common_filter.R")
+source("coords_filter.R")
+source("zones_filter.R")
 
+log_info("-------------------- Filtering DB Tallas --------------------")
 if (!exists('db_data')) {
   db_data <- read_csv2(DB_TALLAS_PATH, locale = locale(encoding = 'latin1'))
 }
 db_filter <- DbDataFilter$new(db_data)
 
 # (1) Rename georeference columns
+log_info("--> (1) Rename coordinate columns")
 col_name_mapping <- list(
   'LON inicio' = 'start_long',
   'LAT inicio' = 'start_lat',
@@ -23,7 +27,9 @@ new_columns <- unname(col_name_mapping)
 db_filter$rename_columns(old_columns, unlist(new_columns))
 mute <- db_filter$clean_df %>% verify(do.call(has_all_names, new_columns))
 
+
 # (2) Convert all potential datetime columns as such
+log_info("--> (2) Calculate Largada and virada Time")
 datetime_columns <- c('dia', 'FLARG', 'FVIR', 'HorafL', 'HorafV')
 db_filter$to_datetime(datetime_columns)
 
@@ -51,6 +57,7 @@ mute <- db_filter$clean_df %>%
   verify(!do.call(has_all_names, list('aux_largada', 'aux_virada')))
 
 # (5) Convert string-based columns into ASCII.
+log_info("--> (3) Convert all immportant strings-based columns to ASCII")
 db_filter$adhoc_replacements()
 fields <- c('ZONA', 'PUERTO_EMBARQUE', 'ARTE', 'ESPECIE', 'valor')
 db_filter$to_encoding(fields, encoding = 'ASCII', string_transform = "Latin-ASCII")
@@ -64,6 +71,7 @@ mute <-
            ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE, valor)
 
 # (6) Classify seafloor type
+log_info("--> (4) Classify the seaflor")
 hard_seafloor_options <- list('hard' = c("piedra", "roca y algas", "piedra dura"))
 mixed_seafloor_options <- list(
   'mixed' = c("cascos de barcos y/o bateas",
@@ -96,8 +104,12 @@ mute <- db_filter$clean_df %>%
 clean_filter_df <- copy(db_filter$clean_df)
 dirty_filter_df <- copy(db_filter$dirty_df)
 
-# (7) Get rows which longitude and latitude pairs have got at least one value
+#---------------------------------------------------------------------------
+#                 Manage coordinates and zones
+#---------------------------------------------------------------------------
 
+# (7) Get rows which longitude and latitude pairs have got at least one value
+log_info("--> (5) Fetch coordinate and convert them to Decimal degrees and UTM")
 long_lat_filter <- LongLatFilter$new(db_filter$clean_df, db_filter$dirty_df)
 long_fields <- c('start_long', 'end_long')
 lat_fields <- c('start_lat', 'end_lat')
@@ -141,6 +153,21 @@ mute <- long_lat_filter$clean_df %>%
   verify(nrow(.) == 0)
 
 
-# # (x) Concatenate clean and dirty dataframes
+# ---> Make a backup copy for at this point for debugging purposes
 clean_df <- copy(long_lat_filter$clean_df)
 dirty_df <- (long_lat_filter$dirty_df)
+
+
+# (9) Classify each are in zones
+log_info("--> (6) Classify each fishing area within zones")
+zone_filter <- ZoneFilter$new(long_lat_filter$clean_df, long_lat_filter$dirty_df)
+zone_filter$define_admin_zones()
+new_columns <- list('admin_zone', 'oceano_zone', 'ices_zone')
+mute<- zone_filter$clean_df %>%
+  verify(do.call(has_all_names, new_columns)) %>%
+  assert(not_na, admin_zone) %>%
+  assert(not_na, oceano_zone) %>%
+  assert(not_na, ices_zone) %>%
+  assert(function (x) x %in% seq(1:9), admin_zone) %>%
+  assert(function (x) x %in% seq(1:3), oceano_zone) %>%
+  assert(function (x) x %in% c("9.a", "8.c"), ices_zone)

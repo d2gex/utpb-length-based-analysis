@@ -4,6 +4,7 @@ library("R6")
 ZoneFilter <- R6Class("ZoneFilter",
                       inherit = BaseDataFilter,
                       public = list(
+                        admin_zones = NULL,
                         initialize = function(clean_data, dirty_data) {
                           super$initialize(clean_data, dirty_data)
                           self$admin_zones <- NewAdministrativeZones$new()
@@ -34,50 +35,45 @@ ZoneFilter <- R6Class("ZoneFilter",
                             )
                         },
                         define_new_admin_zones = function() {
-                          admin_zones <- NewAdministrativeZones$new()
                           # Zona 9 (A Mariña)
                           self$clean_df <- self$clean_df %>%
                             mutate(
                               admin_zone = case_when(
-                                lon >= admin_zones$BaresLon ~ 9,
-                                .default = 8
-                              )
-                            ) %>%
-                            mutate(
-                              admin_zone = case_when(
+                                # Zona 9 (A Mariña)
+                                lon >= self$admin_zones$BaresLon ~ 9,
                                 # Zona 8 (Cedeira)
-                                lat < admin_zones.BaresLon & lat >= 43.51 ~ 8,
+                                lon < self$admin_zones$BaresLon & lat >= 43.51 ~ 8,
                                 # Zona 7 (Coruña-Ferrol)
-                                lon >= admin_zones.LangosteiraLon & lat <= 43.51 ~ 7,
+                                lon >= self$admin_zones$LangosteiraLon & lat <= 43.51 ~ 7,
                                 # Zona 6 (Costa da Morte)
-                                lon < admin_zones.LangosteiraLon & lat >= admin_zones.TourinhanLat ~ 6,
+                                lon < self$admin_zones$LangosteiraLon & lat >= self$admin_zones$TourinhanLat ~ 6,
                                 # Zona 5 (Fisterra)
-                                lat < admin_zones.TourinhanLat &
-                                  lat >= admin_zones.InsuaLat &
+                                lat < self$admin_zones$TourinhanLat &
+                                  lat >= self$admin_zones$InsuaLat &
                                   lon <= -9.08 ~ 5,
                                 # Zona (4)
                                 # --->(Muros)
-                                lat < admin_zones.Insualat & lat >= admin_zones.Sieiralat ~ 4,
+                                lat < self$admin_zones$InsuaLat & lat >= self$admin_zones$SieiraLat ~ 4,
                                 # --> (Interior Ria Muros)
                                 lon > -9.08 &
                                   lon <= -8.8 &
-                                  lat > admin_zones.Insualat &
+                                  lat > self$admin_zones$InsuaLat &
                                   lat < 42.85 ~ 4,
                                 # Zona 3
                                 # --->(Interior Ria Muros)
-                                lat < admin_zones.Sieiralat & lat >= admin_zones.Faxildalat ~ 3,
+                                lat < self$admin_zones$SieiraLat & lat >= self$admin_zones$FaxildaLat ~ 3,
                                 # ---> (Interior Ria Arousa)
                                 lon > -8.9 &
                                   lon <= -8.7 &
-                                  lat > admin_zones.Sieiralat &
+                                  lat > self$admin_zones$SieiraLat &
                                   lat < 42.7 ~ 3,
                                 # Zona 2
                                 # ---> (Pontevedra)
-                                lat < admin_zones.Faxildalat & lat >= admin_zones.Soavelalat ~ 2,
+                                lat < self$admin_zones$FaxildaLat & lat >= self$admin_zones$SoavelaLat ~ 2,
                                 # ---> (Interior Ria Pontevedra 1)
                                 lon > -8.75 &
                                   lon <= -8.65 &
-                                  lat > admin_zones.Faxildalat &
+                                  lat > self$admin_zones$FaxildaLat &
                                   lat < 42.45 ~ 2,
                                 # ---> (Interior Ria Pontevedra 2)
                                 lon > -8.8229 &
@@ -86,18 +82,18 @@ ZoneFilter <- R6Class("ZoneFilter",
                                   lat < 42.278 ~ 2,
                                 # Zona 1
                                 # ---> (Vigo)
-                                lat < admin_zones.Soavelalat ~ 1,
+                                lat < self$admin_zones$SoavelaLat ~ 1,
                                 # ---> (Interior Ria Vigo 1)
                                 lon > -8.68 &
                                   lon <= -8.5 &
-                                  lat > admin_zones.Soavelalat &
+                                  lat > self$admin_zones$SoavelaLat &
                                   lat < 42.36 ~ 1,
                                 # ---> (Interior Ria Vigo 2)
                                 lon > -8.74 &
                                   lon <= -8.67 &
-                                  lat > admin_zones.Soavelalat &
+                                  lat > self$admin_zones$SoavelaLat &
                                   lat < 42.3 ~ 1,
-                                .default = .
+                                 .default = NA
                               )
                             )
                         },
