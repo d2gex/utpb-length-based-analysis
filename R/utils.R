@@ -223,3 +223,30 @@ from_crs_to_crs <- function(df, lon, lat, crs_source, crs_dest) {
   return(result)
 
 }
+
+add_prefix_suffix_to_columns <- function(df, columns_subset) {
+
+}
+
+replace_columns <- function(df_to, df_from, replaced_columns, condition_columns) {
+    #' Replaces the a subset of columns in df_to from df_from, assuming that the columns to be
+    #' replaced have the name name in both dataframes and that only the rows from df_to should
+    #' be returned
+
+  # (1) Get subset of relevant columns
+  relevant_columns <- c(replaced_columns, condition_columns)
+  from_df <- df_from %>% select_at(.vars = relevant_columns)
+
+  # (2) Rename columns in the data from which we will get the replacements
+  from_df <- from_df %>%
+    rename_with(.fn = ~paste0(., "_from"), .cols = replaced_columns)
+
+  # (3) Add replaced columns to df_to and get rid of the ones of itself
+  df_to <- merge(df_to, from_df, by.x = condition_columns, all.x = TRUE) %>%
+    select(-replaced_columns)
+
+  # (4) Restore replaced columns with original names
+  replaced_columns_from <- paste(replaced_columns, "_from", sep = "")
+  df_to <- data.table::setnames(df_to, old = replaced_columns_from, new = replaced_columns)
+  return(df_to)
+}

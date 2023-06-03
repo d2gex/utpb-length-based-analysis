@@ -52,7 +52,34 @@ test_that("Convert from CRS to CRS", {
   crs_source_4326 <- "+init=epsg:4326"
   crs_dest_25829 <- "+init=epsg:25829"
   utm_df <- from_crs_to_crs(crs_4326, 'longitude', 'latitude', crs_source_4326, crs_dest_25829)
-  expect_equal(utm_df, expected_crs_25829, tolerance=1e-3)
+  expect_equal(utm_df, expected_crs_25829, tolerance = 1e-3)
 
 })
 
+test_that("Replace columns from B to A", {
+
+
+  df_to <- data.frame(
+    cond_1 = c(1, 2),
+    cond_2 = c(1),
+    replacement_1 = c('A', 'B'),
+    replacement_2 = c(10, 15))
+  df_from <- data.frame(
+    cond_1 = c(1, 2, 4, 5, 7),
+    cond_2 = c(1, 2, 4, 5, 7),
+    replacement_1 = c('G', 'H', 'I', 'J', 'K'),
+    replacement_2 = c(20, 35, 30, 35, 40),
+    non_replacement = seq(1:5))
+
+  expected_merge <- data.frame(
+    cond_1 = c(1, 2),
+    cond_2 = c(1),
+    replacement_1 = c('G', NA),
+    replacement_2 = c(20, NA))
+
+  replaced_columns <- c('replacement_1', 'replacement_2')
+  condition_columns <- c('cond_1', 'cond_2')
+  result <- replace_columns(df_to, df_from, replaced_columns, condition_columns)
+  expect_true(!('non_replacement' %in% colnames(result)))
+  expect_equal(result, expected_merge)
+})
