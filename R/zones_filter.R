@@ -94,7 +94,7 @@ ZoneFilter <- R6Class("ZoneFilter",
                                   lon <= -8.67 &
                                   lat > self$admin_zones$SoavelaLat &
                                   lat < 42.3 ~ 1,
-                                 .default = NA
+                                .default = NA
                               )
                             )
                         },

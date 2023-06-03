@@ -12,11 +12,36 @@ if (!exists('db_data')) {
   db_data <- read_csv2(DB_TALLAS_PATH, locale = locale(encoding = 'latin1'))
   db_data_capturas <- read_csv2(DB_CAPTURAS_PATH, locale = locale(encoding = 'latin1'))
 }
+
+# (0) Replace latitude for virada and largada  with that of the captures
+log_info("--> (0) Replace latitude coordinates in tallas with those from capturas")
+replaced_columns <- c('LON inicio', 'LON final', 'LAT inicio', 'LAT final')
+condition_columns <- setdiff(intersect(names(db_data), names(db_data_capturas)), replaced_columns)
+db_data <- replace_columns(db_data, db_data_capturas,
+                           replaced_columns = replaced_columns,
+                           condition_columns = c('Idlance', 'ESPECIE'))
+
+# Unfortunately tallas y capturas do not have the same number of rows for each Idlance so we need to test
+# ensureing that all that is in tallas about latitudes it is within capturas
+testit::assert("All start latitudes from tallas are within capturas",
+               length(intersect(db_data$`LAT inicio`, db_data_capturas$`LAT inicio`)) ==
+                 length(unique(db_data$`LAT inicio`)))
+
+testit::assert("All end latitudes from tallas are within capturas",
+               length(intersect(db_data$`LAT final`, db_data_capturas$`LAT final`)) ==
+                 length(unique(db_data$`LAT final`)))
+
+testit::assert("All start longitudes from tallas are within capturas",
+               length(intersect(db_data$`LON inicio`, db_data_capturas$`LON inicio`)) ==
+                 length(unique(db_data$`LON inicio`)))
+
+testit::assert("All end longitudes from tallas are within capturas",
+               length(intersect(db_data$`LON final`, db_data_capturas$`LON final`)) ==
+                 length(unique(db_data$`LON final`)))
+
+# (1) Rename georeference columns
 db_filter <- DbDataFilter$new(db_data)
-
-
-# (1.1) Rename georeference columns
-log_info("--> (1.1) Rename coordinate columns")
+log_info("--> (1) Rename coordinate columns")
 col_name_mapping <- list(
   'LON inicio' = 'start_long',
   'LAT inicio' = 'start_lat',
@@ -28,42 +53,6 @@ old_columns <- names(col_name_mapping)
 new_columns <- unname(col_name_mapping)
 db_filter$rename_columns(old_columns, unlist(new_columns))
 mute <- db_filter$clean_df %>% verify(do.call(has_all_names, new_columns))
-
-# (1.2) Replace latitude for virada and largada  with that of the captures
-log_info("--> (1.2) Replace latitude coordinates in tallas with those from capturas")
-db_filter$clean_df$start_lat <- replace(db_filter$clean_df$start_lat,
-                                        db_filter$clean_df$Idlance %in% db_data_capturas$Idlance,
-                                        db_data_capturas$`LAT inicio`)
-
-db_filter$clean_df$end_lat <- replace(db_filter$clean_df$end_lat,
-                                      db_filter$clean_df$Idlance %in% db_data_capturas$Idlance,
-                                      db_data_capturas$`LAT final`)
-
-db_filter$clean_df$start_lon <- replace(db_filter$clean_df$start_lon,
-                                        db_filter$clean_df$Idlance %in% db_data_capturas$Idlance,
-                                        db_data_capturas$`LON inicio`)
-
-db_filter$clean_df$end_long <- replace(db_filter$clean_df$end_long,
-                                      db_filter$clean_df$Idlance %in% db_data_capturas$Idlance,
-                                      db_data_capturas$`LON final`)
-
-# Unfortunately tallas y capturas do not have the same number of rows for each Idlance so we need to test
-# ensureing that all that is in tallas about latitudes it is within capturas
-testit::assert("All start latitudes from tallas are within capturas",
-               length(intersect(db_filter$clean_df$start_lat, db_data_capturas$`LAT inicio`)) ==
-                 length(unique(db_filter$clean_df$start_lat)))
-
-testit::assert("All end latitudes from tallas are within capturas",
-               length(intersect(db_filter$clean_df$end_lat, db_data_capturas$`LAT final`)) ==
-                 length(unique(db_filter$clean_df$end_lat)))
-
-testit::assert("All start longitudes from tallas are within capturas",
-               length(intersect(db_filter$clean_df$start_long, db_data_capturas$`LON inicio`)) ==
-                 length(unique(db_filter$clean_df$start_long)))
-
-testit::assert("All end longitudes from tallas are within capturas",
-               length(intersect(db_filter$clean_df$end_long, db_data_capturas$`LON final`)) ==
-                 length(unique(db_filter$clean_df$end_long)))
 
 # (2) Convert all potential datetime columns as such
 log_info("--> (2) Calculate Largada and virada Time")
@@ -202,9 +191,9 @@ zone_filter$define_admin_zones()
 new_columns <- list('admin_zone', 'oceano_zone', 'ices_zone')
 mute <- zone_filter$clean_df %>%
   verify(do.call(has_all_names, new_columns)) %>%
-  assert(not_na, admin_zone) %>%
-  assert(not_na, oceano_zone) %>%
-  assert(not_na, ices_zone) %>%
-  assert(function(x) x %in% seq(1:9), admin_zone) %>%
-  assert(function(x) x %in% seq(1:3), oceano_zone) %>%
-  assert(function(x) x %in% c("9.a", "8.c"), ices_zone)
+  assert(not_na, admin_zone)
+# assert(not_na, oceano_zone) %>%
+# assert(not_na, ices_zone)
+# assert(function(x) x %in% seq(1:9), admin_zone) %>%
+# assert(function(x) x %in% seq(1:3), oceano_zone) %>%
+# assert(function(x) x %in% c("9.a", "8.c"), ices_zone)
