@@ -13,11 +13,11 @@ population <- db_data_tallas %>%
 lances_sample <- sample(population$Idlance, 100)
 tallas_sample <- db_data_tallas %>%
   filter(Idlance %in% lances_sample)
-  # select_at(.vars = fields)
+# select_at(.vars = fields)
 
 capturas_sample <- db_data_capturas %>%
   filter(Idlance %in% lances_sample)
-  # select_at(.vars = fields)
+# select_at(.vars = fields)
 
 excel_data <- list(
   tallas = tallas_sample,

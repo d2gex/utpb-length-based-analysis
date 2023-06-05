@@ -169,7 +169,7 @@ mute <- long_lat_filter$clean_df %>%
 # # (9) Transform coordinates to UTM 29
 crs_esp_4326 <- "+init=epsg:4326"
 crs_esp_25829 <- "+init=epsg:25829"
-long_lat_filter$from_crs_to_crs(crs_esp_4326, crs_esp_25829)
+long_lat_filter$from_crs_to_crs('lon', 'lat', crs_esp_4326, crs_esp_25829)
 
 lat_clean_df <- copy(long_lat_filter$clean_df)
 lat_dirty_df <- copy(long_lat_filter$dirty_df)
@@ -191,9 +191,16 @@ zone_filter$define_admin_zones()
 new_columns <- list('admin_zone', 'oceano_zone', 'ices_zone')
 mute <- zone_filter$clean_df %>%
   verify(do.call(has_all_names, new_columns)) %>%
-  assert(not_na, admin_zone)
-# assert(not_na, oceano_zone) %>%
-# assert(not_na, ices_zone)
-# assert(function(x) x %in% seq(1:9), admin_zone) %>%
-# assert(function(x) x %in% seq(1:3), oceano_zone) %>%
-# assert(function(x) x %in% c("9.a", "8.c"), ices_zone)
+  assert(not_na, admin_zone) %>%
+  assert(not_na, oceano_zone) %>%
+  assert(not_na, ices_zone) %>%
+  assert(function(x) x %in% seq(1:9), admin_zone) %>%
+  assert(function(x) x %in% seq(1:3), oceano_zone) %>%
+  assert(function(x) x %in% c("9.a", "8.c"), ices_zone)
+
+# (10) Get only unique latitudes and longitudes
+log_info("--> (7) Build csv with unique coordinates together with lances")
+fields <- c('Idlance', 'lon_utm', 'lat_utm')
+tallas_map <- zone_filter$get_quick_map_data(fields) %>%
+  rename(lon = lon_utm, lat = lat_utm)
+write_csv(tallas_map, "../qgis/output/clean_db_tallas_map.csv")

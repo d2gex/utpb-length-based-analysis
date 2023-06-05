@@ -36,9 +36,9 @@ BaseDataFilter <- R6Class("BaseDataFilter", public = list(
     self$dirty_df <- copy(df)
   },
   get_quick_map_data = function(fields) {
-    return(
-      self$clean_df %>% select_at(.vars = fields)
-    )
+    self$clean_df %>%
+      select_at(.vars = fields) %>%
+      unique()
   }
 ))
 
@@ -224,14 +224,10 @@ from_crs_to_crs <- function(df, lon, lat, crs_source, crs_dest) {
 
 }
 
-add_prefix_suffix_to_columns <- function(df, columns_subset) {
-
-}
-
 replace_columns <- function(df_to, df_from, replaced_columns, condition_columns) {
-      #' Replaces the a subset of columns in df_to from df_from, assuming that the columns to be
-      #' replaced have the name name in both dataframes and that only the rows from df_to should
-      #' be returned
+        #' Replaces the a subset of columns in df_to from df_from, assuming that the columns to be
+        #' replaced have the name name in both dataframes and that only the rows from df_to should
+        #' be returned
 
   # (1) Get subset of relevant columns
   relevant_columns <- c(replaced_columns, condition_columns)

@@ -47,15 +47,9 @@ LongLatFilter <- R6Class("LongLatFilter",
                                mutate(lon = private$f_lon(lon)) %>%
                                mutate(lat = private$f_lat(lat))
                            },
-                           from_crs_to_crs = function(source, dest) {
-                             geo_df <- self$clean_df %>%
-                               select(lon, lat) %>%
-                               st_as_sf(coords = c("lon", "lat")) %>%
-                               st_set_crs(source) %>%
-                               st_transform(dest) %>%
-                               mutate(lon = sf::st_coordinates(.)[, 1],
-                                      lat = sf::st_coordinates(.)[, 2])
-
+                           from_crs_to_crs = function(longitude, latitude, source, dest) {
+                             geo_df <- from_crs_to_crs(self$clean_df,
+                                                       longitude, latitude, source, dest)
                              self$clean_df <- self$clean_df %>%
                                mutate(lon_utm = geo_df$lon, lat_utm = geo_df$lat)
                            }
