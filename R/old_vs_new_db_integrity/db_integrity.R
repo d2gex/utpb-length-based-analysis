@@ -1,3 +1,4 @@
+source("utils.R")
 library("data.table")
 library("lubridate")
 library("testit")
@@ -6,7 +7,6 @@ library("tidyverse")
 library("openxlsx")
 library("quanteda")
 library("R6")
-source("utils.R")
 
 IntegrityData <- R6Class("IntegrityData", public = list(
 
