@@ -1,4 +1,4 @@
-source("config.R")
+source("../config.R")
 library("R6")
 
 ZoneFilter <- R6Class("ZoneFilter",
