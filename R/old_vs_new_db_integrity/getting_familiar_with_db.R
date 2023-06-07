@@ -66,7 +66,7 @@ especies_arte_abundance_data <- merge(esp_arte_rows,
                                       esp_arte_individuos,
                                       by = c("ESPECIE", "ARTE"),
                                       all = TRUE) %>%
-  select(ESPECIE, ARTE, num_rows_arte_especies, num_ind_arte_especie, arte_especie_fraction,
+  select(ESPECIE, ARTE, num_ind_especie, num_rows_arte_especies, num_ind_arte_especie, arte_especie_fraction,
          arte_especie_cum, especie_fraction)
 
 especies_arte_abundance_data <- merge(especies_arte_abundance_data, especies_cumsum, by = "ESPECIE", all = TRUE) %>%
