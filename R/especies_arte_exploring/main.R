@@ -3,6 +3,8 @@ library("ggplot2")
 library("stringr")
 library("readr")
 source("config.R")
+source("utils.R")
+source("especies_arte_exploring/utils.R")
 source("especies_arte_exploring/report.R")
 
 
@@ -24,62 +26,26 @@ from_80 <- db_data %>% filter(especie_cum > 80)
 #           Build and plot 80-80 rule for especies and ARTE
 #-----------------------------------------------------------------
 summary_especie_arte <- esp_arte_report$get_most_representative_arte(up_to_80, threshold = 80, other_keyword = "Other")
-to_plot_df <- summary_especie_arte %>% select(ESPECIE, arte_especie_absolute_fraction, ARTE, num_ind_especie)
-num_especie_individuals <- summary_especie_arte %>%
-  select(ESPECIE, num_ind_especie, especie_fraction) %>%
-  distinct()
-
-g <- to_plot_df %>% ggplot(
-  aes(fill = ARTE,
-      x = reorder(ESPECIE, -arte_especie_absolute_fraction),
-      y = arte_especie_absolute_fraction)) +
-  geom_bar(position = "stack", stat = "identity")
-
-# Unfortunately each element on the x-axis may have different categories so
-# it is not possible to use geom_text for topping the bar with number on individuals
-g <- add_text_top_every_bar(g,
-                            num_especie_individuals,
-                            x_col = 'ESPECIE',
-                            y_col = 'especie_fraction',
-                            label_col = "num_ind_especie",
-                            vertical_adjustment_function = ceiling)
-g <- g +
-  ggtitle("80%-80% rule: Most contributing species and gears") +
-  xlab("Species") +
-  ylab("Species contribution to the sampling(%)") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
-
+g <- plot_especies_arte_barplot(summary_especie_arte,
+                                title = "80%-80% rule: Most contributing species and gears",
+                                x_lab = "Species",
+                                y_lab = "Species contribution to the sampling(%)",
+                                legend_title = 'Gears',
+                                x_angle = 45,
+                                vertical_adjusment_func = ceiling)
 g
 
 #-----------------------------------------------------------------
 #           Build and plot 80-20 rule for especies and ARTE
 #-----------------------------------------------------------------
 summary_especie_arte <- esp_arte_report$get_most_representative_arte(from_80, threshold = 80, other_keyword = "Other")
-to_plot_df <- summary_especie_arte %>% select(ESPECIE, arte_especie_absolute_fraction, ARTE, num_ind_especie)
-num_especie_individuals <- summary_especie_arte %>%
-  select(ESPECIE, num_ind_especie, especie_fraction) %>%
-  distinct()
-
-g <- to_plot_df %>% ggplot(
-  aes(fill = ARTE,
-      x = reorder(ESPECIE, -arte_especie_absolute_fraction),
-      y = arte_especie_absolute_fraction)) +
-  geom_bar(position = "stack", stat = "identity")
-
-# Unfortunately each element on the x-axis may have different categories so
-# it is not possible to use geom_text for topping the bar with number on individuals
-g <- add_text_top_every_bar(g,
-                            num_especie_individuals,
-                            x_col = 'ESPECIE',
-                            y_col = 'especie_fraction',
-                            label_col = "num_ind_especie",
-                            vertical_adjustment_function = function (x) round(x, 1) + 0.1)
-g <- g +
-  ggtitle("80%-80% rule: Most contributing species and gears") +
-  xlab("Species") +
-  ylab("Species contribution to the sampling(%)") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
-
+g <- plot_especies_arte_barplot(summary_especie_arte,
+                                title = "20%-80% rule: Less contributing species and most contributed gears",
+                                x_lab = "Species",
+                                y_lab = "Species contribution to the sampling(%)",
+                                legend_title = 'Gears',
+                                x_angle = 90,
+                                vertical_adjusment_func = function(x) round(x, 1) + 0.1)
 g
 
 

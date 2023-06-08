@@ -99,10 +99,10 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
     # (2) Rename those ARTEs that lay within (100 - threshold)% as a given keyword. They aren't important!
     data <- merge(data, closest_to_threshold, by = "ESPECIE", all = TRUE) %>%
       mutate(ARTE = case_when(
-        arte_especie_cum > min_cum_threshold_arte_especie ~ 'Others',
+        arte_especie_cum > min_cum_threshold_arte_especie ~ other_keyword,
         .default = ARTE
       ), arte_nickname = case_when(
-        ARTE == 'Others' ~ 'Others',
+        ARTE == other_keyword ~ other_keyword,
         .default = arte_nickname
       )) %>%
       arrange(desc(especie_fraction), ESPECIE, desc(arte_especie_fraction))
