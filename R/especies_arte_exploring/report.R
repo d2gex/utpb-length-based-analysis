@@ -1,6 +1,7 @@
 library("R6")
 library("assertr")
 library("dplyr")
+library("data.table")
 
 EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
   db_data = NULL,
