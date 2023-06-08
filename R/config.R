@@ -28,3 +28,7 @@ NewAdministrativeZones <- R6Class("NewAdministrativeZones",
                                     SoavelaLat = 42.277784,
                                     SoavelaLon = -8.864851
                                   ))
+
+paper_type <- "a4r"
+paper_height <- 8.268
+paper_width <- 11.693
