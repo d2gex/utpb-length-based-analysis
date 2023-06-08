@@ -20,48 +20,12 @@ db_data <- copy(esp_arte_report$summary)
 up_to_80 <- db_data %>% filter(especie_cum <= 80)
 from_80 <- db_data %>% filter(especie_cum > 80)
 
-
-# Get all ARTEs per ESPECIE which total cumulative sum(%) is above a threshold
-closes_to_80 <- up_to_80 %>%
-  select(ESPECIE, ARTE, arte_especie_fraction, arte_especie_cum) %>%
-  group_by(ESPECIE) %>%
-  filter(arte_especie_cum > 80) %>%
-  filter(arte_especie_cum - 80 == min(arte_especie_cum - 80)) %>%
-  rename(min_cum_threshold_arte_especie = arte_especie_cum) %>%
-  select(-c(arte_especie_fraction, ARTE))
-
-# Rename those ARTEs that lay within (100 - threshold)% as 'Others'
-up_to_80 <- merge(up_to_80, closes_to_80, by = "ESPECIE", all = TRUE) %>%
-  mutate(ARTE = case_when(
-    arte_especie_cum > min_cum_threshold_arte_especie ~ 'Others',
-    .default = ARTE
-  ), arte_nickname = case_when(
-    ARTE == 'Others' ~ 'Others',
-    .default = arte_nickname
-  )) %>%
-  arrange(desc(especie_fraction), ESPECIE, desc(arte_especie_fraction))
-
-
-# Split main ARTEs from remaining
-main_ARTE <- up_to_80 %>%
-  filter(ARTE != 'Others') %>%
-  select(ESPECIE, ARTE, arte_nickname, arte_especie_fraction, especie_fraction, num_ind_especie)
-
-remaining_arte <- up_to_80 %>%
-  filter(ARTE == 'Others') %>%
-  select(ESPECIE, ARTE, arte_nickname, arte_especie_fraction, especie_fraction, num_ind_especie) %>%
-  group_by(ESPECIE) %>%
-  mutate(arte_especie_fraction = sum(arte_especie_fraction)) %>%
-  distinct()
-
-
-summary_up_to_80 <- rbind(main_ARTE, remaining_arte) %>%
-  mutate(arte_especie_absolute_fraction = (arte_especie_fraction / 100) * especie_fraction) %>%
-  arrange(-arte_especie_absolute_fraction, ESPECIE)
-
-
-to_plot_df <- summary_up_to_80 %>% select(ESPECIE, arte_especie_absolute_fraction, ARTE, num_ind_especie)
-num_especie_individuals <- summary_up_to_80 %>%
+#-----------------------------------------------------------------
+#           Build and plot 80-80 rule for especies and ARTE
+#-----------------------------------------------------------------
+summary_especie_arte <- esp_arte_report$get_most_representative_arte(up_to_80, threshold = 80, other_keyword = "Other")
+to_plot_df <- summary_especie_arte %>% select(ESPECIE, arte_especie_absolute_fraction, ARTE, num_ind_especie)
+num_especie_individuals <- summary_especie_arte %>%
   select(ESPECIE, num_ind_especie, especie_fraction) %>%
   distinct()
 
@@ -82,7 +46,7 @@ for (row in 1:nrow(num_especie_individuals)) {
 g <- g +
   ggtitle("80%-80% rule: Most contributing species and gears") +
   xlab("Species") +
-  ylab("Especies contribution to the sampling(%)") +
+  ylab("Species contribution to the sampling(%)") +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
 
 g

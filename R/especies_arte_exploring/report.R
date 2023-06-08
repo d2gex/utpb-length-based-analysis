@@ -99,10 +99,10 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
     # (2) Rename those ARTEs that lay within (100 - threshold)% as a given keyword. They aren't important!
     data <- merge(data, closest_to_threshold, by = "ESPECIE", all = TRUE) %>%
       mutate(ARTE = case_when(
-        arte_especie_cum > min_cum_threshold_arte_especie ~ other_keyword,
+        arte_especie_cum > min_cum_threshold_arte_especie ~ 'Others',
         .default = ARTE
       ), arte_nickname = case_when(
-        ARTE == other_keyword ~ other_keyword,
+        ARTE == 'Others' ~ 'Others',
         .default = arte_nickname
       )) %>%
       arrange(desc(especie_fraction), ESPECIE, desc(arte_especie_fraction))
@@ -112,20 +112,23 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
     common_columns <- c('ESPECIE', 'ARTE', 'arte_nickname', 'arte_especie_fraction', 'especie_fraction')
     main_ARTE <- data %>%
       filter(ARTE != other_keyword) %>%
-      select_at(.vars = common_columns)
+      select(ESPECIE, ARTE, arte_nickname, arte_especie_fraction, especie_fraction, num_ind_especie)
 
     remaining_arte_summed_up <- data %>%
       filter(ARTE == other_keyword) %>%
-      select_at(.vars = common_columns) %>%
+      select(ESPECIE, ARTE, arte_nickname, arte_especie_fraction, especie_fraction, num_ind_especie) %>%
       group_by(ESPECIE) %>%
       mutate(arte_especie_fraction = sum(arte_especie_fraction)) %>%
       distinct()
 
     # Last
     summary_especie_arte <- rbind(main_ARTE, remaining_arte_summed_up) %>%
-      arrange(ESPECIE, -arte_especie_fraction)
+      mutate(arte_especie_absolute_fraction = (arte_especie_fraction / 100) * especie_fraction) %>%
+      arrange(-arte_especie_absolute_fraction, ESPECIE)
 
     return(summary_especie_arte)
   }
 
 ))
+
+common_columns <- c('ESPECIE', 'ARTE', 'arte_nickname', 'arte_especie_fraction', 'especie_fraction')
