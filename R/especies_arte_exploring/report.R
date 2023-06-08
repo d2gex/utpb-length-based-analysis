@@ -130,5 +130,3 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
   }
 
 ))
-
-common_columns <- c('ESPECIE', 'ARTE', 'arte_nickname', 'arte_especie_fraction', 'especie_fraction')
