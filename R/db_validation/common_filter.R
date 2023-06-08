@@ -5,7 +5,7 @@ library("assertr")
 library("tidyverse")
 library("stringi")
 library("readr")
-source("utils.R")
+source("db_validation/base_filter.R")
 
 DbDataFilter <-
   R6Class("DbDataFilter",

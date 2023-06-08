@@ -1,6 +1,7 @@
-source("utils.R")
 library("R6")
 library("sf")
+source("utils.R")
+source("db_validation/base_filter.R")
 
 LongLatFilter <- R6Class("LongLatFilter",
                          inherit = BaseDataFilter,

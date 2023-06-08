@@ -1,5 +1,6 @@
-source("config.R")
 library("R6")
+source("config.R")
+source("db_validation/base_filter.R")
 
 ZoneFilter <- R6Class("ZoneFilter",
                       inherit = BaseDataFilter,
