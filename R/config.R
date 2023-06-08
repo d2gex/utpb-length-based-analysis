@@ -29,6 +29,15 @@ NewAdministrativeZones <- R6Class("NewAdministrativeZones",
                                     SoavelaLon = -8.864851
                                   ))
 
+PlotContext <- R6Class("PlotContext", public = list(
+  title = NULL,
+  x_lab = NULL,
+  y_lab = NULL,
+  legend_title = NULL,
+  face_text = NULL,
+  x_angle = NULL
+))
+
 paper_type <- "a4r"
 paper_height <- 8.268
 paper_width <- 11.693

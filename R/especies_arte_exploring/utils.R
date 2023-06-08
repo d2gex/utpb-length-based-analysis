@@ -1,6 +1,6 @@
 library("ggplot2")
 
-plot_especies_arte_barplot <- function(data, title, x_lab, y_lab, legend_title, face_text, x_angle, vertical_adjusment_func) {
+plot_especies_arte_barplot <- function(data, plot_context, vertical_adjusment_func) {
 
   to_plot_df <- data %>%
     select(ESPECIE, arte_especie_absolute_fraction, ARTE, num_ind_especie) %>%
@@ -23,17 +23,16 @@ plot_especies_arte_barplot <- function(data, title, x_lab, y_lab, legend_title, 
                                     x_col = 'ESPECIE',
                                     y_col = 'especie_fraction',
                                     label_col = "num_ind_especie",
-                                    label_text_size = face_text,
+                                    label_text_size = plot_context.face_text,
                                     vertical_adjustment_function = vertical_adjusment_func)
   gg_plot <- gg_plot +
-    ggtitle(title) +
-    xlab(x_lab) +
-    ylab(y_lab) +
-    scale_fill_discrete(name = legend_title) +
+    ggtitle(plot_context.title) +
+    xlab(plot_context.x_lab) +
+    ylab(plot_context.y_lab) +
+    scale_fill_discrete(name = plot_context.legend_title) +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = x_angle, vjust = 0.5))
+    theme(axis.text.x = element_text(angle = plot_context.x_angle, vjust = 0.5))
 
-  gg_plot
   return(gg_plot)
 
 }

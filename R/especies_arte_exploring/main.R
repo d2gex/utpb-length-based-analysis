@@ -26,27 +26,27 @@ from_80 <- db_data %>% filter(especie_cum > 80)
 #-----------------------------------------------------------------
 #           Build and plot 80-80 rule for especies and ARTE
 #-----------------------------------------------------------------
+plot_context <- PlotContext$new()
+plot_context.title <- "80%-80% rule: Most contributing species \n and gears"
+plot_context.x_lab <- "Species"
+plot_context.y_lab <- "Species contribution to the sampling(%)"
+plot_context.legend_title <- 'Gears'
+plot_context.face_text <- 4
+plot_context.x_angle <- 45
 summary_especie_arte <- esp_arte_report$get_most_representative_arte(up_to_80, threshold = 80, other_keyword = "Other")
 g_most_especies <- plot_especies_arte_barplot(summary_especie_arte,
-                                              title = "80%-80% rule: Most contributing species and gears",
-                                              x_lab = "Species",
-                                              y_lab = "Species contribution to the sampling(%)",
-                                              legend_title = 'Gears',
-                                              face_text = 4,
-                                              x_angle = 45,
+                                              plot_context,
                                               vertical_adjusment_func = ceiling)
 
 #-----------------------------------------------------------------
 #           Build and plot 80-20 rule for especies and ARTE
 #-----------------------------------------------------------------
+plot_context.title <- "20%-80% rule: Less contributing species and \n most contributed gears"
+plot_context.face_text <- 2.5
+plot_context.x_angle <- 90
 summary_especie_arte <- esp_arte_report$get_most_representative_arte(from_80, threshold = 80, other_keyword = "Other")
 g_least_species <- plot_especies_arte_barplot(summary_especie_arte,
-                                              title = "20%-80% rule: Less contributing species and most contributed gears",
-                                              x_lab = "Species",
-                                              y_lab = "Species contribution to the sampling(%)",
-                                              legend_title = 'Gears',
-                                              face_text = 2.4,
-                                              x_angle = 90,
+                                              plot_context,
                                               vertical_adjusment_func = function(x) round(x, 1) + 0.1)
 
 outer_grid <-
