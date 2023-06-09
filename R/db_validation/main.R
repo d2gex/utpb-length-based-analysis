@@ -96,7 +96,7 @@ mute <-
            ZONA, PUERTO_EMBARQUE, ARTE, ESPECIE, valor)
 
 # (6) Classify seafloor type
-log_info("--> (4) Classify the seaflor")
+log_info("--> (4) Classify the seafloor")
 hard_seafloor_options <- list('hard' = c("piedra", "roca y algas", "piedra dura"))
 mixed_seafloor_options <- list(
   'mixed' = c("cascos de barcos y/o bateas",
@@ -129,8 +129,8 @@ mute <- db_filter$clean_df %>%
 clean_filter_df <- copy(db_filter$clean_df)
 dirty_filter_df <- copy(db_filter$dirty_df)
 
-# (7) Get rid of Tallas if they are NaN
-log_info("--> (7) Clean up those species whose TALLA is not provided")
+# (7) Get rid of rows whose TALLA column is NaN
+log_info("--> (5) Clean up those species whose TALLA is not provided")
 # (7.1) ---> Generate a report about species that do not have TALLA or PESO
 report_columns <- c('ESPECIE', 'num_na_talla', 'num_na_peso', 'perc_na_talla', 'perc_na_peso')
 no_tallas_peso_df <- db_filter$generate_no_talla_report_by_species(report_columns)
@@ -141,12 +141,18 @@ db_filter$get_rid_of_NaNs_for_all_cols('TALLA')
 mute <- db_filter$clean_df %>%
   assert(not_na, TALLA)
 
+# (8) Get rid of rows whose NUMINDIVS column is NaN
+log_info("--> (6) Clean up those species whose NUMINDIVS is not provided")
+db_filter$get_rid_of_NaNs_for_all_cols('NUMINDIVS')
+mute <- db_filter$clean_df %>%
+  assert(not_na, NUMINDIVS)
+
 #---------------------------------------------------------------------------
 #                 Manage coordinates and zones
 #---------------------------------------------------------------------------
 
-# (8) Get rows which longitude and latitude pairs have got at least one value
-log_info("--> (5) Fetch coordinate and convert them to Decimal degrees and UTM")
+# (9) Get rows which longitude and latitude pairs have got at least one value
+log_info("--> (7) Fetch coordinate and convert them to Decimal degrees and UTM")
 long_lat_filter <- LongLatFilter$new(db_filter$clean_df, db_filter$dirty_df)
 long_fields <- c('start_long', 'end_long')
 lat_fields <- c('start_lat', 'end_lat')
@@ -169,7 +175,7 @@ mute <- long_lat_filter$clean_df %>%
   filter(if_all(long_fields, ~is.na(.))) %>%
   verify(nrow(.) == 0)
 
-# (9) Transform longitud and latitude to decimal degree
+# (10) Transform longitud and latitude to decimal degree
 long_lat_filter$to_espg_4326()
 
 # --> Make sure that every pair of geopoint has a value
@@ -177,7 +183,7 @@ mute <- long_lat_filter$clean_df %>%
   filter(if_any(c('lon', 'lat'), ~is.na(.))) %>%
   verify(nrow(.) == 0)
 
-# # (10) Transform coordinates to UTM 29
+# # (11) Transform coordinates to UTM 29
 crs_esp_4326 <- "+init=epsg:4326"
 crs_esp_25829 <- "+init=epsg:25829"
 long_lat_filter$from_crs_to_crs('lon', 'lat', crs_esp_4326, crs_esp_25829)
@@ -195,8 +201,8 @@ clean_df <- copy(long_lat_filter$clean_df)
 dirty_df <- (long_lat_filter$dirty_df)
 
 
-# (11) Classify each are in zones
-log_info("--> (6) Classify each fishing area within zones")
+# (12) Classify each are in zones
+log_info("--> (8) Classify each fishing area within zones")
 zone_filter <- ZoneFilter$new(long_lat_filter$clean_df, long_lat_filter$dirty_df)
 zone_filter$define_admin_zones()
 new_columns <- list('admin_zone', 'oceano_zone', 'ices_zone')
@@ -209,8 +215,8 @@ mute <- zone_filter$clean_df %>%
   assert(function(x) x %in% seq(1:3), oceano_zone) %>%
   assert(function(x) x %in% c("9.a", "8.c"), ices_zone)
 
-# (12) Get only unique latitudes and longitudes
-log_info("--> (7) Build csv with unique coordinates together with lances")
+# (13) Get only unique latitudes and longitudes
+log_info("--> (9) Build csv with unique coordinates together with lances")
 fields <- c('Idlance', 'lon_utm', 'lat_utm')
 tallas_map <- zone_filter$get_quick_map_data(fields) %>%
   rename(lon = lon_utm, lat = lat_utm)
