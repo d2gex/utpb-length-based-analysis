@@ -6,7 +6,7 @@ library("ggpubr")
 source("config.R")
 source("utils.R")
 source("especies_arte_exploring/utils.R")
-source("especies_arte_exploring/report.R")
+source("especies_arte_exploring/overall_report.R")
 
 
 if (!exists('db_data_tallas')) {
