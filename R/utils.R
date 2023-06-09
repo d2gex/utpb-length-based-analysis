@@ -111,14 +111,14 @@ plots_to_pdf <-
            height,
            width) {
     # @formatter:off
-            #' Creates a pdf with a list of plotted objects
-            #' @param all_graph_plots A list of plots
-            #' @param filename A string
-            #' @param paper A string
-            #' @param height A integer
-            #' @param width A integer
-            #' @return NULL
-            # @formatter:on
+    #' Creates a pdf with a list of plotted objects
+    #' @param all_graph_plots A list of plots
+    #' @param filename A string
+    #' @param paper A string
+    #' @param height A integer
+    #' @param width A integer
+    #' @return NULL
+    # @formatter:on
 
     pdf(filename,
         paper = paper,
