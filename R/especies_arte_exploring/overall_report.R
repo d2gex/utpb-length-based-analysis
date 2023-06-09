@@ -2,18 +2,16 @@ library("R6")
 library("assertr")
 library("dplyr")
 library("data.table")
+source("especies_arte_exploring/base_report.R")
 
-EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
-  db_data = NULL,
-  overall_summary = NULL,
+EspeciesArteReport <- R6Class("EspeciesArteReport", inherit = Report, public = list(
   summary_up_to_threshold = NULL,
   summary_from_threshold = NULL,
   num_decimals = NULL,
   initialize = function(db_data, num_decimals) {
-    self$db_data <- copy(db_data)
-    self$num_decimals <- 5
+    super$initialize(db_data, num_decimals)
   },
-  generate_overall_summary = function() {
+  generate_summary = function() {
     # // @formatter:off
     #' Get a long dataframe with osummarised details from the tandem ESPECIE-ARTE perspective for the whole
     #' timeseries
@@ -62,44 +60,19 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
       assert(not_na, colnames(.))
 
     # (5) join all matrices together into one
-    self$overall_summary <- merge(esp_arte_rows,
-                                  esp_arte_individuos,
-                                  by = c("ESPECIE", "ARTE"),
-                                  all = TRUE) %>%
+    self$summary <- merge(esp_arte_rows,
+                          esp_arte_individuos,
+                          by = c("ESPECIE", "ARTE"),
+                          all = TRUE) %>%
       select(ESPECIE, ARTE, num_ind_especie, num_rows_arte_especies, num_ind_arte_especie, arte_especie_fraction,
              arte_especie_cum, especie_fraction)
 
-    self$overall_summary <- merge(self$overall_summary, especies_cumsum, by = "ESPECIE", all = TRUE) %>%
+    self$summary <- merge(self$summary, especies_cumsum, by = "ESPECIE", all = TRUE) %>%
       arrange(desc(especie_fraction), ESPECIE, desc(arte_especie_fraction))
 
   },
 
-  add_arte_nicknames = function() {
-    arte_nick_name_df <- self$overall_summary %>%
-      select(ARTE) %>%
-      distinct() %>%
-      rowwise() %>%
-      mutate(arte_nickname = case_when(
-        # Only one word larger than 6 ~ get three characters
-        length(unlist(str_split(ARTE, " "))) == 1 & nchar(ARTE) > 6 ~
-          paste(substring(unlist(str_split(ARTE, " ")), 1, 3), collapse = "_"),
-        nchar(ARTE) <= 6 ~ ARTE,
-        .default = paste(substring(unlist(str_split(ARTE, " ")), 1, 2), collapse = "_")
-      )) %>%
-      mutate(
-        arte_nickname = case_when(
-          arte_nickname == 'RA_VI_VO_ZA_OS' ~ 'RA_MULTI',
-          .default = arte_nickname
-        )
-      )
-    mute <- arte_nick_name_df %>%
-      verify(length(unique(ARTE)) == length(unique(arte_nickname)))
-
-    self$overall_summary <- merge(self$overall_summary, arte_nick_name_df, by = "ARTE", all = TRUE) %>%
-      relocate(arte_nickname, .after = ARTE) %>%
-      arrange(desc(especie_fraction), ESPECIE, desc(arte_especie_fraction))
-  },
-  split_overall_summary_by_threshold = function(species_threshold, gears_threshold, gears_other_keyword) {
+  split_summary_by_threshold = function(species_threshold, gears_threshold, gears_other_keyword) {
     # @formatter:off
     #' Given an overall summary dataframe,  it splits the dataset into two subset: the first one will contain
     #' up to 'species_threshold' of all species that contribute to the sampling and the second one the remaining. Both
@@ -107,8 +80,8 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
     #' and those up to 'gears_threshold' are left as such.
     # @formatter:on
 
-    up_to_threshold <- self$overall_summary %>% filter(especie_cum <= species_threshold)
-    from_threshold <- self$overall_summary %>% filter(especie_cum > species_threshold)
+    up_to_threshold <- self$summary %>% filter(especie_cum <= species_threshold)
+    from_threshold <- self$summary %>% filter(especie_cum > species_threshold)
     self$summary_up_to_threshold <- private$get_arte_up_to_threshold(up_to_threshold, gears_threshold, gears_other_keyword)
     self$summary_from_threshold <- private$get_arte_up_to_threshold(from_threshold, gears_threshold, gears_other_keyword)
   }
