@@ -14,18 +14,20 @@ if (!exists('db_data_tallas')) {
   # db_data_capturas <- read_csv2(DB_CAPTURAS_PATH, locale = locale(encoding = 'latin1'))
 }
 
+# (1) Build 80-80 rule dataframe from species-ARTE perspective
 esp_arte_report <- EspeciesArteReport$new(db_data_tallas, 4)
-esp_arte_report$generate_summary()
+esp_arte_report$generate_overall_summary()
 esp_arte_report$add_arte_nicknames()
-write_csv(esp_arte_report$summary, "../data/sensitive/output/especies_arte_sampling.csv")
+db_data <- copy(esp_arte_report$overall_summary)
+esp_arte_report$split_overall_summary_by_threshold(80, 80, 'Other')
 
-db_data <- copy(esp_arte_report$summary)
-up_to_80 <- db_data %>% filter(especie_cum <= 80)
-from_80 <- db_data %>% filter(especie_cum > 80)
+mute <- esp_arte_report$summary_up_to_threshold %>%
+  assert(not_na, colnames(.))
+mute <- esp_arte_report$summary_from_threshold %>%
+  assert(not_na, colnames(.))
 
-#-----------------------------------------------------------------
-#           Build and plot 80-80 rule for especies and ARTE
-#-----------------------------------------------------------------
+
+# (2) Build plot 80-80 rule for especies and ARTE, respectively
 plot_context <- PlotContext$new()
 plot_context.title <- "80%-80% rule: Most contributing species \n and gears"
 plot_context.x_lab <- "Species"
@@ -33,22 +35,20 @@ plot_context.y_lab <- "Species contribution to the sampling(%)"
 plot_context.legend_title <- 'Gears'
 plot_context.face_text <- 4
 plot_context.x_angle <- 45
-summary_especie_arte <- esp_arte_report$get_most_representative_arte(up_to_80, threshold = 80, other_keyword = "Other")
-g_most_especies <- plot_especies_arte_barplot(summary_especie_arte,
+g_most_especies <- plot_especies_arte_barplot(esp_arte_report$summary_up_to_threshold,
                                               plot_context,
                                               vertical_adjusment_func = ceiling)
 
-#-----------------------------------------------------------------
-#           Build and plot 80-20 rule for especies and ARTE
-#-----------------------------------------------------------------
+
+# (3) Build plot 20-80 rule for especies and ARTE, respectively
 plot_context.title <- "20%-80% rule: Less contributing species and \n most contributed gears"
 plot_context.face_text <- 2.5
 plot_context.x_angle <- 90
-summary_especie_arte <- esp_arte_report$get_most_representative_arte(from_80, threshold = 80, other_keyword = "Other")
-g_least_species <- plot_especies_arte_barplot(summary_especie_arte,
+g_least_species <- plot_especies_arte_barplot(esp_arte_report$summary_from_threshold,
                                               plot_context,
                                               vertical_adjusment_func = function(x) round(x, 1) + 0.1)
 
+# (4) Plot findings and write report to disk
 outer_grid <-
   ggarrange(
     plotlist = list(
@@ -65,3 +65,4 @@ plots_to_pdf(list(outer_grid),
              paper_height,
              paper_width)
 
+write_csv(esp_arte_report$overall_summary, "../data/sensitive/output/especies_arte_sampling.csv")

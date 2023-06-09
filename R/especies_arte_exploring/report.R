@@ -5,18 +5,35 @@ library("data.table")
 
 EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
   db_data = NULL,
-  summary = NULL,
+  overall_summary = NULL,
+  summary_up_to_threshold = NULL,
+  summary_from_threshold = NULL,
   num_decimals = NULL,
   initialize = function(db_data, num_decimals) {
     self$db_data <- copy(db_data)
     self$num_decimals <- 5
   },
-  generate_summary = function() {
+  generate_overall_summary = function() {
+    # // @formatter:off
+    #' Get a long dataframe with osummarised details from the tandem ESPECIE-ARTE perspective for the whole
+    #' timeseries
+    #' @return:
+    #'  - ESPECIE
+    #'  - ARTE
+    #'  - num_ind_especie: number of individuals by species only
+    #'  - especie_fraction: % by species only
+    #'  - num_rows_arte_especies: number of rows in the matrix by species-gear
+    #'  - num_ind_arte_especie: number of individuals by species-arte
+    #'  - arte_especie_fraction: % by species-arte
+    #'  - arte_especie_cum: cumulative sum by arte_especie_fraction
+    # // @formatter:on
 
     # (1) Get total number of rows per ESPECIE and ARTE
     esp_arte_rows <- db_data_tallas %>%
       group_by(ESPECIE, ARTE) %>%
       summarise(num_rows_arte_especies = n())
+    mute <- esp_arte_rows %>%
+      assert(not_na, colnames(.))
 
 
     # (2) Get total numbers by ESPECIE, by ESPECIE and ARTE and percentages by ESPECIE and ESPECIE and ARTE. Then add
@@ -32,6 +49,8 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
       ungroup() %>%
       mutate(especie_fraction = round(num_ind_especie / sum(num_ind_arte_especie), self$num_decimals) * 100)
 
+    mute <- esp_arte_individuos %>%
+      assert(not_na, colnames(.))
     #  (3) Get cumulative by especies in descending order
     especies_cumsum <- esp_arte_individuos %>%
       distinct(ESPECIE, especie_fraction, .keep_all = TRUE) %>%
@@ -39,29 +58,24 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
       mutate(especie_cum = round(cumsum(especie_fraction)), self$num_decimals) %>%
       select(ESPECIE, especie_cum)
 
-    # (self$num_decimals) Ensure there are no NAs in the rows
-    mute <- esp_arte_rows %>%
-      assert(not_na, colnames(.))
-    mute <- esp_arte_individuos %>%
-      assert(not_na, colnames(.))
     mute <- especies_cumsum %>%
       assert(not_na, colnames(.))
 
     # (5) join all matrices together into one
-    self$summary <- merge(esp_arte_rows,
-                          esp_arte_individuos,
-                          by = c("ESPECIE", "ARTE"),
-                          all = TRUE) %>%
+    self$overall_summary <- merge(esp_arte_rows,
+                                  esp_arte_individuos,
+                                  by = c("ESPECIE", "ARTE"),
+                                  all = TRUE) %>%
       select(ESPECIE, ARTE, num_ind_especie, num_rows_arte_especies, num_ind_arte_especie, arte_especie_fraction,
              arte_especie_cum, especie_fraction)
 
-    self$summary <- merge(self$summary, especies_cumsum, by = "ESPECIE", all = TRUE) %>%
+    self$overall_summary <- merge(self$overall_summary, especies_cumsum, by = "ESPECIE", all = TRUE) %>%
       arrange(desc(especie_fraction), ESPECIE, desc(arte_especie_fraction))
 
   },
 
   add_arte_nicknames = function() {
-    arte_nick_name_df <- self$summary %>%
+    arte_nick_name_df <- self$overall_summary %>%
       select(ARTE) %>%
       distinct() %>%
       rowwise() %>%
@@ -81,11 +95,31 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
     mute <- arte_nick_name_df %>%
       verify(length(unique(ARTE)) == length(unique(arte_nickname)))
 
-    self$summary <- merge(self$summary, arte_nick_name_df, by = "ARTE", all = TRUE) %>%
+    self$overall_summary <- merge(self$overall_summary, arte_nick_name_df, by = "ARTE", all = TRUE) %>%
       relocate(arte_nickname, .after = ARTE) %>%
       arrange(desc(especie_fraction), ESPECIE, desc(arte_especie_fraction))
   },
-  get_most_representative_arte = function(data, threshold, other_keyword) {
+  split_overall_summary_by_threshold = function(species_threshold, gears_threshold, gears_other_keyword) {
+    # @formatter:off
+    #' Given an overall summary dataframe,  it splits the dataset into two subset: the first one will contain
+    #' up to 'species_threshold' of all species that contribute to the sampling and the second one the remaining. Both
+    #' subsets are reworked so that all gears that contribute the least are grouped and rename as 'gears_other_keyword'
+    #' and those up to 'gears_threshold' are left as such.
+    # @formatter:on
+
+    up_to_threshold <- self$overall_summary %>% filter(especie_cum <= species_threshold)
+    from_threshold <- self$overall_summary %>% filter(especie_cum > species_threshold)
+    self$summary_up_to_threshold <- private$get_arte_up_to_threshold(up_to_threshold, gears_threshold, gears_other_keyword)
+    self$summary_from_threshold <- private$get_arte_up_to_threshold(from_threshold, gears_threshold, gears_other_keyword)
+  }
+
+), private = list(
+  get_arte_up_to_threshold = function(data, threshold, other_keyword) {
+    # @formatter:off
+    #' Given an overall summary dataframe, calculate the gears that count for a given % threshold of the
+    #' total sampling. The remaining from the threshold up to 100% are labelled with a keyword (normallly 'Rest',
+    #' 'Other' etc..
+    # @formatter:on
 
     # Get all ARTEs per ESPECIE which total cumulative sum(%) is above a given threshold
     closest_to_threshold <- data %>%
@@ -128,5 +162,4 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", public = list(
 
     return(summary_especie_arte)
   }
-
 ))
