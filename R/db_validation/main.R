@@ -8,40 +8,39 @@ source("db_validation/coords_filter.R")
 source("db_validation/zones_filter.R")
 
 log_info("-------------------- Filtering DB Tallas --------------------")
-if (!exists('db_data')) {
-  db_data <- read_csv2(DB_TALLAS_PATH, locale = locale(encoding = 'latin1'))
+if (!exists('db_data_tallas')) {
+  db_data_tallas <- read_csv2(DB_TALLAS_PATH, locale = locale(encoding = 'latin1'))
   db_data_capturas <- read_csv2(DB_CAPTURAS_PATH, locale = locale(encoding = 'latin1'))
 }
 
 # (0) Replace latitude for virada and largada  with that of the captures
 log_info("--> (0) Replace latitude coordinates in tallas with those from capturas")
 replaced_columns <- c('LON inicio', 'LON final', 'LAT inicio', 'LAT final')
-condition_columns <- setdiff(intersect(names(db_data), names(db_data_capturas)), replaced_columns)
-db_data <- replace_columns(db_data, db_data_capturas,
-                           replaced_columns = replaced_columns,
-                           condition_columns = c('Idlance', 'ESPECIE'))
+condition_columns <- setdiff(intersect(names(db_data_tallas), names(db_data_capturas)), replaced_columns)
+db_data_tallas <- replace_columns(db_data_tallas, db_data_capturas,
+                                  replaced_columns = replaced_columns,
+                                  condition_columns = c('Idlance', 'ESPECIE'))
 
 # Unfortunately tallas y capturas do not have the same number of rows for each Idlance so we need to test
 # ensureing that all that is in tallas about latitudes it is within capturas
 testit::assert("All start latitudes from tallas are within capturas",
-               length(intersect(db_data$`LAT inicio`, db_data_capturas$`LAT inicio`)) ==
-                 length(unique(db_data$`LAT inicio`)))
+               length(intersect(db_data_tallas$`LAT inicio`, db_data_capturas$`LAT inicio`)) ==
+                 length(unique(db_data_tallas$`LAT inicio`)))
 
 testit::assert("All end latitudes from tallas are within capturas",
-               length(intersect(db_data$`LAT final`, db_data_capturas$`LAT final`)) ==
-                 length(unique(db_data$`LAT final`)))
+               length(intersect(db_data_tallas$`LAT final`, db_data_capturas$`LAT final`)) ==
+                 length(unique(db_data_tallas$`LAT final`)))
 
 testit::assert("All start longitudes from tallas are within capturas",
-               length(intersect(db_data$`LON inicio`, db_data_capturas$`LON inicio`)) ==
-                 length(unique(db_data$`LON inicio`)))
+               length(intersect(db_data_tallas$`LON inicio`, db_data_capturas$`LON inicio`)) ==
+                 length(unique(db_data_tallas$`LON inicio`)))
 
 testit::assert("All end longitudes from tallas are within capturas",
-               length(intersect(db_data$`LON final`, db_data_capturas$`LON final`)) ==
-                 length(unique(db_data$`LON final`)))
+               length(intersect(db_data_tallas$`LON final`, db_data_capturas$`LON final`)) ==
+                 length(unique(db_data_tallas$`LON final`)))
 
 # (1) Rename georeference columns
-db_filter <- DbDataFilter$new(db_data)
-log_info("--> (1) Rename coordinate columns")
+db_filter <- DbDataFilter$new(db_data_tallas)
 col_name_mapping <- list(
   'LON inicio' = 'start_long',
   'LAT inicio' = 'start_lat',
@@ -130,11 +129,23 @@ mute <- db_filter$clean_df %>%
 clean_filter_df <- copy(db_filter$clean_df)
 dirty_filter_df <- copy(db_filter$dirty_df)
 
+# (7) Get rid of Tallas if they are NaN
+log_info("--> (7) Clean up those species whose TALLA is not provided")
+# (7.1) ---> Generate a report about species that do not have TALLA or PESO
+report_columns <- c('ESPECIE', 'num_na_talla', 'num_na_peso', 'perc_na_talla', 'perc_na_peso')
+no_tallas_peso_df <- db_filter$generate_no_talla_report_by_species(report_columns)
+mute <- no_tallas_peso_df %>%
+  assert(not_na, colnames(.))
+# (7.2) ---> Generate a report about species that do not have TALL
+db_filter$get_rid_of_NaNs_for_all_cols('TALLA')
+mute <- db_filter$clean_df %>%
+  assert(not_na, TALLA)
+
 #---------------------------------------------------------------------------
 #                 Manage coordinates and zones
 #---------------------------------------------------------------------------
 
-# (7) Get rows which longitude and latitude pairs have got at least one value
+# (8) Get rows which longitude and latitude pairs have got at least one value
 log_info("--> (5) Fetch coordinate and convert them to Decimal degrees and UTM")
 long_lat_filter <- LongLatFilter$new(db_filter$clean_df, db_filter$dirty_df)
 long_fields <- c('start_long', 'end_long')
@@ -158,7 +169,7 @@ mute <- long_lat_filter$clean_df %>%
   filter(if_all(long_fields, ~is.na(.))) %>%
   verify(nrow(.) == 0)
 
-# (8) Transform longitud and latitude to decimal degree
+# (9) Transform longitud and latitude to decimal degree
 long_lat_filter$to_espg_4326()
 
 # --> Make sure that every pair of geopoint has a value
@@ -166,7 +177,7 @@ mute <- long_lat_filter$clean_df %>%
   filter(if_any(c('lon', 'lat'), ~is.na(.))) %>%
   verify(nrow(.) == 0)
 
-# # (9) Transform coordinates to UTM 29
+# # (10) Transform coordinates to UTM 29
 crs_esp_4326 <- "+init=epsg:4326"
 crs_esp_25829 <- "+init=epsg:25829"
 long_lat_filter$from_crs_to_crs('lon', 'lat', crs_esp_4326, crs_esp_25829)
@@ -184,7 +195,7 @@ clean_df <- copy(long_lat_filter$clean_df)
 dirty_df <- (long_lat_filter$dirty_df)
 
 
-# (9) Classify each are in zones
+# (11) Classify each are in zones
 log_info("--> (6) Classify each fishing area within zones")
 zone_filter <- ZoneFilter$new(long_lat_filter$clean_df, long_lat_filter$dirty_df)
 zone_filter$define_admin_zones()
@@ -198,9 +209,14 @@ mute <- zone_filter$clean_df %>%
   assert(function(x) x %in% seq(1:3), oceano_zone) %>%
   assert(function(x) x %in% c("9.a", "8.c"), ices_zone)
 
-# (10) Get only unique latitudes and longitudes
+# (12) Get only unique latitudes and longitudes
 log_info("--> (7) Build csv with unique coordinates together with lances")
 fields <- c('Idlance', 'lon_utm', 'lat_utm')
 tallas_map <- zone_filter$get_quick_map_data(fields) %>%
   rename(lon = lon_utm, lat = lat_utm)
+
+# Last (Output the results(
 write_csv(tallas_map, "../qgis/output/clean_db_tallas_map.csv")
+write_csv(no_tallas_peso_df, "../data/sensitive/output/species_talla_peso_as_na.csv")
+write_csv(zone_filter$clean_df, "../data/sensitive/output/clean_db_tallas.csv")
+

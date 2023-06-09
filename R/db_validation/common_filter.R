@@ -106,6 +106,26 @@ DbDataFilter <-
                   .default = default # options not selected above
                 ))
               invisible(self)
+            },
+            generate_no_talla_report_by_species = function(columns) {
+              no_tallas_peso_df <- create_empty_dataframe(columns)
+              species <- unique(self$clean_df$ESPECIE)
+              for (specie in species) {
+                specie_alone <- self$clean_df %>%
+                  filter(ESPECIE == specie)
+                total_specie <- sum(specie_alone$NUMINDIVS, na.rm = TRUE)
+                no_talla_specie <- specie_alone %>% filter(is.na(TALLA))
+                no_peso_specie <- specie_alone %>% filter(is.na(PESO))
+                total_no_talla_specie <- sum(no_talla_specie$NUMINDIVS, na.rm = TRUE)
+                total_no_peso_specie <- sum(no_peso_specie$NUMINDIVS, na.rm = TRUE)
+                no_tallas_peso_df[nrow(no_tallas_peso_df) + 1,] <- c(specie,
+                                                                     total_no_talla_specie,
+                                                                     total_no_peso_specie,
+                                                                     round((total_no_talla_specie / total_specie) * 100, 2),
+                                                                     round((total_no_peso_specie / total_specie) * 100, 2)
+                )
+              }
+              return(no_tallas_peso_df)
             }
           )
   )
