@@ -8,8 +8,8 @@ get_column_data_type <- function(df, column_name) {
 }
 
 make_cols_same_length <- function(col_1, col_2, fill) {
-              #' Ensure to given columns have the same length by filling up the shotest columns with a give
-              #' filling value
+                #' Ensure to given columns have the same length by filling up the shotest columns with a give
+                #' filling value
 
   if (length(col_1) == length(col_2)) {
     return(list(col_1 = col_1, col_2 = col_2))
@@ -38,8 +38,10 @@ get_name <- function(var_name) {
 }
 
 from_crs_to_crs <- function(df, lon, lat, crs_source, crs_dest) {
-              #' Return a dataframe with two coordinate-columns converted to a given CRS. The name of the columns
-              #' is the same as in the original dataframe df
+  # @formatter:off
+  #' Return a dataframe with two coordinate-columns converted to a given CRS. The name of the columns
+  #' is the same as in the original dataframe df
+  # @formatter:on
 
   coords <- c(lon, lat)
   df <- df %>%
@@ -62,9 +64,11 @@ from_crs_to_crs <- function(df, lon, lat, crs_source, crs_dest) {
 }
 
 replace_columns <- function(df_to, df_from, replaced_columns, condition_columns) {
-                #' Replaces a subset of columns in df_to from df_from, assuming that the columns being
-                #' replaced have the same name in both dataframes and that all rows from df_to should
-                #' be returned
+  # @formatter:off
+  #' Replaces a subset of columns in df_to from df_from, assuming that the columns being
+  #' replaced have the same name in both dataframes and that all rows from df_to should
+  #' be returned
+  # @formatter:on
 
   # (1) Get subset of relevant columns
   relevant_columns <- c(replaced_columns, condition_columns)
@@ -85,9 +89,10 @@ replace_columns <- function(df_to, df_from, replaced_columns, condition_columns)
 }
 
 add_text_top_every_bar <- function(gg_plot, df, x_col, y_col, label_col, label_text_size, vertical_adjustment_function) {
-
-        #' Add the value of one of the collums in the passed dataframe on top of each bar. The vertical adjustment
-        #' is calculated by the passed function
+  # @formatter:off
+  #' Add the value of one of the collums in the passed dataframe on top of each bar. The vertical adjustment
+  #' is calculated by the passed function
+  # @formatter:on
 
   for (row in 1:nrow(df)) {
     x <- df[row, x_col]
@@ -105,6 +110,7 @@ plots_to_pdf <-
            paper,
            height,
            width) {
+    # @formatter:off
             #' Creates a pdf with a list of plotted objects
             #' @param all_graph_plots A list of plots
             #' @param filename A string
@@ -112,6 +118,7 @@ plots_to_pdf <-
             #' @param height A integer
             #' @param width A integer
             #' @return NULL
+            # @formatter:on
 
     pdf(filename,
         paper = paper,
