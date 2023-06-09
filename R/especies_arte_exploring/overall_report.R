@@ -27,7 +27,7 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", inherit = Report, public = l
     # // @formatter:on
 
     # (1) Get total number of rows per ESPECIE and ARTE
-    esp_arte_rows <- db_data_tallas %>%
+    esp_arte_rows <- self$db_data %>%
       group_by(ESPECIE, ARTE) %>%
       summarise(num_rows_arte_especies = n())
     mute <- esp_arte_rows %>%
@@ -36,7 +36,7 @@ EspeciesArteReport <- R6Class("EspeciesArteReport", inherit = Report, public = l
 
     # (2) Get total numbers by ESPECIE, by ESPECIE and ARTE and percentages by ESPECIE and ESPECIE and ARTE. Then add
     # the cumulative sum by ESPECIE and ARTE in descending order
-    esp_arte_individuos <- db_data_tallas %>%
+    esp_arte_individuos <- self$db_data %>%
       filter(not_na(NUMINDIVS)) %>%
       group_by(ESPECIE, ARTE) %>%
       summarise(num_ind_arte_especie = sum(NUMINDIVS)) %>%

@@ -10,11 +10,11 @@ source("especies_arte_exploring/overall_report.R")
 
 
 if (!exists('db_data_tallas')) {
-  db_data_tallas <- read_csv(file.path(DATA_OUTPUT, 'clean_db_tallas.csv'), locale = locale(encoding = 'latin1'))
+  clean_db_data_tallas <- read_csv(file.path(DATA_OUTPUT, 'clean_db_tallas.csv'), locale = locale(encoding = 'latin1'))
 }
 
 # (1) Build 80-80 rule dataframe from species-ARTE perspective
-esp_arte_report <- EspeciesArteReport$new(db_data_tallas, 4)
+esp_arte_report <- EspeciesArteReport$new(clean_db_data_tallas, 4)
 esp_arte_report$generate_summary()
 esp_arte_report$add_arte_nicknames()
 db_data <- copy(esp_arte_report$overall_summary)
@@ -46,6 +46,7 @@ plot_context.x_angle <- 90
 g_least_species <- plot_especies_arte_barplot(esp_arte_report$summary_from_threshold,
                                               plot_context,
                                               vertical_adjusment_func = function(x) round(x, 1) + 0.1)
+
 
 # (4) Plot findings and write report to disk
 outer_grid <-
