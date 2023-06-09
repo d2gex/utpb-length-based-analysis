@@ -10,8 +10,7 @@ source("especies_arte_exploring/overall_report.R")
 
 
 if (!exists('db_data_tallas')) {
-  db_data_tallas <- read_csv2(DB_TALLAS_PATH, locale = locale(encoding = 'latin1'))
-  # db_data_capturas <- read_csv2(DB_CAPTURAS_PATH, locale = locale(encoding = 'latin1'))
+  db_data_tallas <- read_csv(file.path(DATA_OUTPUT, 'clean_db_tallas.csv'), locale = locale(encoding = 'latin1'))
 }
 
 # (1) Build 80-80 rule dataframe from species-ARTE perspective
