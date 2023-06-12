@@ -36,3 +36,45 @@ plot_especies_arte_barplot <- function(data, plot_context, vertical_adjusment_fu
   return(gg_plot)
 
 }
+
+generate_plot_spe_gear_dual_axis <- function(data, plot_context, transf_factor, vertical_adjustment_func) {
+
+  g <- ggplot(data, aes(x = reorder(ARTE, -mean_year_arte_talla))) +
+    geom_bar(aes(y = mean_year_arte_talla, fill = ARTE), stat = "identity", size = .1) +
+    geom_point(aes(y = year_arte_abundance / transf_factor)) +
+    geom_line(aes(y = year_arte_abundance / transf_factor, group = 1), size = 1) +
+
+    scale_y_continuous(
+
+      # Features of the first axis
+      name = plot_context.y_lab,
+
+      # Add a second axis and specify its features
+      sec.axis = sec_axis(~. * transf_factor, name = plot_context.second_y_lab)
+    )
+
+  g <- add_text_to_graph_position(
+    g, data,
+    'ARTE',
+    'mean_year_arte_talla',
+    'mean_year_arte_talla',
+    6,
+    vertical_adjustment_func
+  )
+
+  g <- add_text_to_graph_position(
+    g,
+    data,
+    'ARTE',
+    data$year_arte_abundance / transf_factor,
+    'year_arte_abundance',
+    6,
+    vertical_adjustment_func
+  )
+
+  g <- g +
+    theme_bw() +
+    xlab(plot_context.x_lab)
+
+  return(g)
+}

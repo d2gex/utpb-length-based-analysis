@@ -149,3 +149,7 @@ create_empty_dataframe <- function(col_names) {
   colnames(df) <- col_names
   return(df)
 }
+
+get_nearest_base <- function(x) {
+  return(10^ceiling(log10(x)))
+}
