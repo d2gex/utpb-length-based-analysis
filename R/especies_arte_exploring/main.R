@@ -3,6 +3,7 @@ library("ggplot2")
 library("stringr")
 library("readr")
 library("ggpubr")
+library("tidyr")
 source("config.R")
 source("utils.R")
 source("especies_arte_exploring/utils.R")
@@ -15,18 +16,22 @@ if (!exists('db_data_tallas')) {
 }
 
 # (1) Build 80-80 rule dataframe from species-ARTE perspective
+other_keyword <- 'Other'
 esp_arte_report <- EspeciesArteReport$new(clean_db_data_tallas, 4)
 esp_arte_report$generate_summary()
 esp_arte_report$add_arte_nicknames()
 db_data <- copy(esp_arte_report$overall_summary)
-esp_arte_report$split_summary_by_threshold(80, 80, 'Other')
+esp_arte_report$split_summary_by_threshold(80, 80, other_keyword)
 
 mute <- esp_arte_report$summary_up_to_threshold %>%
   assert(not_na, colnames(.))
 mute <- esp_arte_report$summary_from_threshold %>%
   assert(not_na, colnames(.))
 
-yearly_esp_arte_report <- EspeciesArteYearReport$new(clean_db_data_tallas, 4, esp_arte_report$summary_up_to_threshold)
+yearly_esp_arte_report <- EspeciesArteYearReport$new(clean_db_data_tallas,
+                                                     4,
+                                                     esp_arte_report$summary_up_to_threshold,
+                                                     other_keyword)
 yearly_esp_arte_report$generate_summary()
 
 
@@ -47,6 +52,7 @@ for (i in 1:12) {
   mean_size <- mean(data_to_plot$mean_year_arte_talla)
   mean_num_inds <- mean(data_to_plot$year_arte_abundance)
   transf_factor <- get_nearest_base(mean_num_inds / mean_size)
+  plot_context.title <- years[i]
   g <- generate_plot_spe_gear_dual_axis(data_to_plot, plot_context, transf_factor, ceiling)
   plots[[i]] <- g
 }
@@ -55,12 +61,14 @@ outer_grid <-
   ggarrange(
     plotlist = plots,
     ncol = 4,
-    nrow = 3
+    nrow = 3,
+    common.legend = TRUE,
+    legend = "bottom"
   )
 gg_plot <- annotate_figure(outer_grid,
-                left = text_grob("Mean Length (cm)", rot = 90, vjust = 1),
-                right = text_grob("Number of Individuals", rot = 90, vjust = 1),
-                bottom = text_grob("Gears"))
+                           left = text_grob("Mean Length (cm)", rot = 90, vjust = 1),
+                           right = text_grob("Number of Individuals", rot = 90, vjust = 1),
+                           bottom = text_grob("Gears"))
 
 gg_plot
 

@@ -42,7 +42,7 @@ generate_plot_spe_gear_dual_axis <- function(data, plot_context, transf_factor, 
   g <- ggplot(data, aes(x = reorder(ARTE, -mean_year_arte_talla))) +
     geom_bar(aes(y = mean_year_arte_talla, fill = ARTE), stat = "identity", size = .1) +
     geom_point(aes(y = year_arte_abundance / transf_factor)) +
-    geom_line(aes(y = year_arte_abundance / transf_factor, group = 1), size = 1) +
+    geom_line(aes(y = year_arte_abundance / transf_factor, group = 1), size = 0.5) +
 
     scale_y_continuous(
 
@@ -79,8 +79,9 @@ generate_plot_spe_gear_dual_axis <- function(data, plot_context, transf_factor, 
     theme(legend.position = plot_context.legend_position,
           axis.text.x = element_text(angle = plot_context.x_angle, vjust = 0.5),
           axis.title.x = element_blank(),
-          axis.title.y = element_blank() )
-
+          axis.title.y = element_blank(),
+          plot.title = element_text(hjust = 0.5)) +
+    ggtitle(plot_context.title)
 
   return(g)
 }

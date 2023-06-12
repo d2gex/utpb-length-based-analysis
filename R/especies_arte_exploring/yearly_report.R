@@ -3,9 +3,11 @@ source("especies_arte_exploring/base_report.R")
 
 EspeciesArteYearReport <- R6Class("EspeciesArteYearReport", inherit = Report, public = list(
   overall_summary = NULL,
-  initialize = function(db_data, num_decimals, overall_summary) {
+  other_keyword = NULL,
+  initialize = function(db_data, num_decimals, overall_summary, other_keyword) {
     super$initialize(db_data, num_decimals)
     self$overall_summary <- overall_summary
+    self$other_keyword <- other_keyword
   },
   generate_summary = function() {
     species <- unique(self$overall_summary$ESPECIE)
@@ -15,7 +17,7 @@ EspeciesArteYearReport <- R6Class("EspeciesArteYearReport", inherit = Report, pu
     for (x in 1:length(species)) {
       summary[species[x]] <- species_data[x]
     }
-    self$summary = summary
+    self$summary <- summary
   }
 ), private = list(
   generate_summary_single_specie = function(specie_name) {
@@ -38,7 +40,7 @@ EspeciesArteYearReport <- R6Class("EspeciesArteYearReport", inherit = Report, pu
     # (2) Get a single species' mains ARTE and num_individuals by ARTE
     specie_summary_df <- self$overall_summary %>%
       filter(ESPECIE == specie_name)
-    specie_artes <- setdiff(unique(specie_summary_df$ARTE), other_keyword)
+    specie_artes <- setdiff(unique(specie_summary_df$ARTE), self$other_keyword)
     specie_relevant_arte_df <- specie_df %>%
       filter(ARTE %in% specie_artes)
 
