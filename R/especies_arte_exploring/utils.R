@@ -18,13 +18,13 @@ plot_especies_arte_barplot <- function(data, plot_context, vertical_adjusment_fu
 
   # Unfortunately each element on the x-axis may have different categories so
   # it is not possible to use geom_text for topping the bar with number on individuals
-  gg_plot <- add_text_top_every_bar(gg_plot,
-                                    num_especie_individuals,
-                                    x_col = 'ESPECIE',
-                                    y_col = 'especie_fraction',
-                                    label_col = "num_ind_especie",
-                                    label_text_size = plot_context.face_text,
-                                    vertical_adjustment_function = vertical_adjusment_func)
+  gg_plot <- add_text_to_graph_position(gg_plot,
+                                        num_especie_individuals,
+                                        x_col = 'ESPECIE',
+                                        y_col = 'especie_fraction',
+                                        label_col = "num_ind_especie",
+                                        label_text_size = plot_context.face_text,
+                                        vertical_adjustment_function = vertical_adjusment_func)
   gg_plot <- gg_plot +
     ggtitle(plot_context.title) +
     xlab(plot_context.x_lab) +

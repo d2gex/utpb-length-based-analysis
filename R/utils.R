@@ -8,8 +8,8 @@ get_column_data_type <- function(df, column_name) {
 }
 
 make_cols_same_length <- function(col_1, col_2, fill) {
-                        #' Ensure to given columns have the same length by filling up the shotest columns with a give
-                        #' filling value
+                          #' Ensure to given columns have the same length by filling up the shotest columns with a give
+                          #' filling value
 
   if (length(col_1) == length(col_2)) {
     return(list(col_1 = col_1, col_2 = col_2))
@@ -88,21 +88,25 @@ replace_columns <- function(df_to, df_from, replaced_columns, condition_columns)
   return(df_to)
 }
 
-add_text_top_every_bar <- function(gg_plot, df, x_col, y_col, label_col, label_text_size, vertical_adjustment_function) {
+add_text_to_graph_position <- function(gg_plot, df, x_col, y_col, label_col, label_text_size, vertical_adjustment_function) {
   # @formatter:off
-  #' Add the value of one of the collums in the passed dataframe on top of each bar. The vertical adjustment
+  #' Add the value of one column in the passed dataframe on top of each bar. The vertical adjustment
   #' is calculated by the passed function
   # @formatter:on
 
+
   for (row in 1:nrow(df)) {
     x <- df[row, x_col]
-    y <- vertical_adjustment_function(df[row, y_col])
+    y <- ifelse(length(y_col) == 1, # is y_col the name of the column of an array of values where to place the text?
+                vertical_adjustment_function(df[row, y_col]),
+                vertical_adjustment_function(y_col[row]))
     label <- df[row, label_col]
     gg_plot <- gg_plot + annotate("text", x = x, y = y, label = label, size = label_text_size)
   }
   return(gg_plot)
 
 }
+
 
 plots_to_pdf <-
   function(plot_objects,
