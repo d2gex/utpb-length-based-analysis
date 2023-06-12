@@ -47,22 +47,110 @@ g_least_species <- plot_especies_arte_barplot(esp_arte_report$summary_from_thres
                                               plot_context,
                                               vertical_adjusment_func = function(x) round(x, 1) + 0.1)
 
+# (4) Generate yearly summaries for for each individual species
+specie_name <- 'Trisopterus luscus'
+other_keyword <- 'Other'
+specie_df <- clean_db_data_tallas %>%
+  filter(ESPECIE == specie_name) %>%
+  mutate(year = as.numeric(format(largada_time, format = "%Y"))) %>%
+  select(ESPECIE, TALLA, year, NUMINDIVS, ARTE) %>%
+  uncount(NUMINDIVS)
 
-# (4) Plot findings and write report to disk
-outer_grid <-
-  ggarrange(
-    plotlist = list(
-      g_most_especies,
-      g_least_species
-    ),
-    ncol = 2,
-    nrow = 1
+# Potential NA in column NUMINDIVS should be gone by now
+specie_individuals <- sum((clean_db_data_tallas %>% filter(ESPECIE == specie_name))$NUMINDIVS)
+mute <- specie_df %>%
+  verify(nrow(.) == specie_individuals)
+
+# Get a single species' mains ARTE and num_individuals by ARTE
+specie_summary_df <- esp_arte_report$summary_up_to_threshold %>%
+  filter(ESPECIE == specie_name)
+specie_artes <- setdiff(unique(specie_summary_df$ARTE), other_keyword)
+specie_relevant_arte <- specie_df %>%
+  filter(ARTE %in% specie_artes)
+
+# Calculate yearly abundance per ARTE
+species_relevant_arte_abundance_df <- specie_relevant_arte %>%
+  filter(ARTE %in% specie_artes) %>%
+  group_by(year, ARTE) %>%
+  summarise(year_arte_abundance = n())
+
+# Ensure that abundances have been properly calculated
+mute <- species_relevant_arte_abundance_df %>%
+  summarise(year_abundance = sum(year_arte_abundance)) %>%
+  summarise(total_year_abundance = sum(year_abundance)) %>%
+  verify(total_year_abundance == nrow(specie_relevant_arte))
+
+# Calculate yearly TALLA per ARTE
+species_relevant_arte_meantalla_df <- specie_relevant_arte %>%
+  group_by(year, ARTE) %>%
+  summarise(mean_year_arte_talla = round(mean(TALLA), 2)) %>%
+  arrange(year, ARTE)
+
+data_plot <- merge(species_relevant_arte_abundance_df,
+                   species_relevant_arte_meantalla_df,
+                   by = c("year", "ARTE"),
+                   all = TRUE)
+
+
+coeff <- 100
+data_to_plot <- data_plot %>%
+  filter(year==1999)
+
+g <- ggplot(data_to_plot, aes(x = reorder(ARTE, -mean_year_arte_talla))) +
+  geom_bar(aes(y = mean_year_arte_talla, fill = ARTE), stat = "identity", size = .1) +
+  geom_point(aes(y=year_arte_abundance / coeff)) +
+  geom_line(aes(y = year_arte_abundance / coeff, group=1), size = 1) +
+
+  scale_y_continuous(
+
+    # Features of the first axis
+    name = "Mean Length",
+
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~. * coeff, name = "Number of individuals")
   )
 
-plots_to_pdf(list(outer_grid),
-             "../data/sensitive/output/reports/species_gears_stack_barplot.pdf",
-             paper_type,
-             paper_height,
-             paper_width)
+g <- add_text_to_graph_position(
+  g, data_to_plot, 'ARTE', 'mean_year_arte_talla', 'mean_year_arte_talla', 6, ceiling
+)
 
-write_csv(esp_arte_report$summary, "../data/sensitive/output/especies_arte_sampling.csv")
+g <- add_text_to_graph_position(
+  g,
+  data_to_plot,
+  'ARTE',
+  data_to_plot$year_arte_abundance / coeff,
+  'year_arte_abundance',
+  6, ceiling
+)
+
+g <- g + theme_bw() +
+  xlab("Gears") +
+  ggtitle("Number of individuals vs Mean Length by year and gear in 1999")
+
+g
+
+
+# specie_df <- merge(specie_df, specie_summary_df, by= c("ESPECIE", "ARTE"), all.x = TRUE) %>%
+#   group_by(year, ARTE) %>%
+#   mutate(mean_size = mean(TALLA))
+
+
+#
+# # (4) Plot findings and write report to disk
+# outer_grid <-
+#   ggarrange(
+#     plotlist = list(
+#       g_most_especies,
+#       g_least_species
+#     ),
+#     ncol = 2,
+#     nrow = 1
+#   )
+#
+# plots_to_pdf(list(outer_grid),
+#              "../data/sensitive/output/reports/species_gears_stack_barplot.pdf",
+#              paper_type,
+#              paper_height,
+#              paper_width)
+#
+# write_csv(esp_arte_report$summary, "../data/sensitive/output/especies_arte_sampling.csv")
