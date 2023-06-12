@@ -29,23 +29,40 @@ mute <- esp_arte_report$summary_from_threshold %>%
 yearly_esp_arte_report <- EspeciesArteYearReport$new(clean_db_data_tallas, 4, esp_arte_report$summary_up_to_threshold)
 yearly_esp_arte_report$generate_summary()
 
-data_to_plot <- yearly_esp_arte_report$summary[[2]] %>%
-  filter(year == 1999)
 
 plot_context <- PlotContext$new()
 plot_context.x_lab <- "Gears"
 plot_context.y_lab <- "Mean Length (cms)"
 plot_context.second_y_lab <- "Number of individuals"
 plot_context.legend_title <- 'Gears'
-plot_context.face_text <- 4
-plot_context.x_angle <- 90
+plot_context.face_text <- 3
+plot_context.x_angle <- 45
+plot_context.legend_position <- "none"
 
-mean_size <- mean(data_to_plot$mean_year_arte_talla)
-mean_num_inds <- mean(data_to_plot$year_arte_abundance)
-transf_factor <- get_nearest_base(mean_num_inds / mean_size)
+years <- sort(unique((clean_db_data_tallas %>% mutate(year = as.numeric(format(largada_time, format = "%Y"))))$year))
+plots <- list()
+for (i in 1:12) {
+  data_to_plot <- yearly_esp_arte_report$summary[["Trisopterus luscus"]] %>%
+    filter(year == years[i])
+  mean_size <- mean(data_to_plot$mean_year_arte_talla)
+  mean_num_inds <- mean(data_to_plot$year_arte_abundance)
+  transf_factor <- get_nearest_base(mean_num_inds / mean_size)
+  g <- generate_plot_spe_gear_dual_axis(data_to_plot, plot_context, transf_factor, ceiling)
+  plots[[i]] <- g
+}
 
-g <- generate_plot_spe_gear_dual_axis(data_to_plot, plot_context, transf_factor, ceiling)
+outer_grid <-
+  ggarrange(
+    plotlist = plots,
+    ncol = 4,
+    nrow = 3
+  )
+gg_plot <- annotate_figure(outer_grid,
+                left = text_grob("Mean Length (cm)", rot = 90, vjust = 1),
+                right = text_grob("Number of Individuals", rot = 90, vjust = 1),
+                bottom = text_grob("Gears"))
 
+gg_plot
 
 # # (2) Build plot 80-80 rule for especies and ARTE, respectively
 # plot_context <- PlotContext$new()

@@ -38,6 +38,7 @@ PlotContext <- R6Class("PlotContext", public = list(
   legend_title = NULL,
   face_text = NULL,
   x_angle = NULL,
+  legend_position = NULL
 ))
 
 paper_type <- "a4r"

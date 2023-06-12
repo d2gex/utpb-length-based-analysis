@@ -46,11 +46,12 @@ generate_plot_spe_gear_dual_axis <- function(data, plot_context, transf_factor, 
 
     scale_y_continuous(
 
-      # Features of the first axis
-      name = plot_context.y_lab,
+      # # Features of the first axis
+      # name = plot_context.y_lab,
 
       # Add a second axis and specify its features
-      sec.axis = sec_axis(~. * transf_factor, name = plot_context.second_y_lab)
+      # sec.axis = sec_axis(~. * transf_factor, name = plot_context.second_y_lab)
+      sec.axis = sec_axis(~. * transf_factor)
     )
 
   g <- add_text_to_graph_position(
@@ -58,7 +59,7 @@ generate_plot_spe_gear_dual_axis <- function(data, plot_context, transf_factor, 
     'ARTE',
     'mean_year_arte_talla',
     'mean_year_arte_talla',
-    6,
+    plot_context.face_text,
     vertical_adjustment_func
   )
 
@@ -68,13 +69,18 @@ generate_plot_spe_gear_dual_axis <- function(data, plot_context, transf_factor, 
     'ARTE',
     data$year_arte_abundance / transf_factor,
     'year_arte_abundance',
-    6,
+    plot_context.face_text,
     vertical_adjustment_func
   )
 
+
   g <- g +
     theme_bw() +
-    xlab(plot_context.x_lab)
+    theme(legend.position = plot_context.legend_position,
+          axis.text.x = element_text(angle = plot_context.x_angle, vjust = 0.5),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank() )
+
 
   return(g)
 }
