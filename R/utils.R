@@ -8,8 +8,10 @@ get_column_data_type <- function(df, column_name) {
 }
 
 make_cols_same_length <- function(col_1, col_2, fill) {
-                          #' Ensure to given columns have the same length by filling up the shotest columns with a give
-                          #' filling value
+  # // @formatter:off
+  #' Ensure to given columns have the same length by filling up the shotest columns with a give
+  #' filling value
+  # // @formatter:on
 
   if (length(col_1) == length(col_2)) {
     return(list(col_1 = col_1, col_2 = col_2))
@@ -106,7 +108,6 @@ add_text_to_graph_position <- function(gg_plot, df, x_col, y_col, label_col, lab
   return(gg_plot)
 
 }
-
 
 plots_to_pdf <-
   function(plot_objects,

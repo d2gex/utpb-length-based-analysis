@@ -3,6 +3,7 @@ library("R6")
 Report <- R6Class("Report", public = list(
   db_data = NULL,
   summary = NULL,
+  num_decimals = NULL,
   initialize = function(db_data, num_decimals) {
     self$db_data <- copy(db_data)
     self$num_decimals <- num_decimals
