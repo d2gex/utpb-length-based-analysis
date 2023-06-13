@@ -7,6 +7,20 @@ get_column_data_type <- function(df, column_name) {
   )
 }
 
+create_empty_dataframe <- function(col_names) {
+  df <- data.frame(matrix(nrow = 0, ncol = length(col_names)))
+  colnames(df) <- col_names
+  return(df)
+}
+
+get_nearest_base <- function(x) {
+  return(10^ceiling(log10(x)))
+}
+
+is_single_string <- function(input) {
+  is.character(input) & length(input) == 1
+}
+
 make_cols_same_length <- function(col_1, col_2, fill) {
   # // @formatter:off
   #' Ensure to given columns have the same length by filling up the shotest columns with a give
@@ -95,11 +109,9 @@ add_text_to_graph_position <- function(gg_plot, df, x_col, y_col, label_col, lab
   #' Add the value of one column in the passed dataframe on top of each bar. The vertical adjustment
   #' is calculated by the passed function
   # @formatter:on
-
-
   for (row in 1:nrow(df)) {
     x <- df[row, x_col]
-    y <- ifelse(length(y_col) == 1, # is y_col the name of the column of an array of values where to place the text?
+    y <- ifelse(is_single_string(y_col), # is y_col the name of the column or an array of values where to place the text?
                 vertical_adjustment_function(df[row, y_col]),
                 vertical_adjustment_function(y_col[row]))
     label <- df[row, label_col]
@@ -143,13 +155,3 @@ plots_to_pdf <-
 
     dev.off()
   }
-
-create_empty_dataframe <- function(col_names) {
-  df <- data.frame(matrix(nrow = 0, ncol = length(col_names)))
-  colnames(df) <- col_names
-  return(df)
-}
-
-get_nearest_base <- function(x) {
-  return(10^ceiling(log10(x)))
-}
