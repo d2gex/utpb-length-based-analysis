@@ -55,37 +55,11 @@ plot_sheets <- generate_all_plots_spe_gear_dual_axis(yearly_esp_arte_report$summ
                                                      plot_context,
                                                      ceiling)
 
-plots_to_pdf(list(plot_sheets[[1]]),
+plots_to_pdf(plot_sheets,
              "../data/sensitive/output/reports/t_luscus_main_ARTE_stats.pdf",
              paper_type,
              paper_height,
              paper_width)
-# plots <- list()
-# for (i in 1:16) {
-#   data_to_plot <- yearly_esp_arte_report$summary[["Trisopterus luscus"]] %>%
-#     filter(year == years[i])
-#   mean_size <- mean(data_to_plot$mean_year_arte_talla)
-#   mean_num_inds <- mean(data_to_plot$year_arte_abundance)
-#   transf_factor <- get_nearest_base(mean_num_inds / mean_size)
-#   plot_context.title <- years[i]
-#   g <- generate_individual_plot_spe_gear_dual_axis(data_to_plot, plot_context, transf_factor, function(x) { ceiling(x) + 2 })
-#   plots[[i]] <- g
-# }
-#
-# outer_grid <-
-#   ggarrange(
-#     plotlist = plots,
-#     ncol = 4,
-#     nrow = 4,
-#     common.legend = TRUE,
-#     legend = "bottom"
-#   )
-# gg_plot <- annotate_figure(outer_grid,
-#                            left = text_grob("Mean Length (cm)", rot = 90, vjust = 1),
-#                            right = text_grob("Number of Individuals", rot = 90, vjust = 1),
-#                            bottom = text_grob("Gears"))
-#
-# gg_plot
 
 # # (2) Build plot 80-80 rule for especies and ARTE, respectively
 # plot_context <- PlotContext$new()
