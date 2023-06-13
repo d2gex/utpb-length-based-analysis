@@ -67,6 +67,9 @@ EspeciesArteYearReport <- R6Class("EspeciesArteYearReport", inherit = Report, pu
                          species_relevant_arte_meantalla_df,
                          by = c("year", "ARTE"),
                          all = TRUE)
+    # (7) Add missing ARTE for all years
+    specie_data <- as.data.frame(specie_data %>%
+      complete(year, ARTE, fill = list(year_arte_abundance = 0,  mean_year_arte_talla = 0), explicit = FALSE))
     print(paste("-------------->", "EMD"))
     return(specie_data)
 

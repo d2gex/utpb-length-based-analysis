@@ -53,7 +53,7 @@ for (i in 1:12) {
   mean_num_inds <- mean(data_to_plot$year_arte_abundance)
   transf_factor <- get_nearest_base(mean_num_inds / mean_size)
   plot_context.title <- years[i]
-  g <- generate_plot_spe_gear_dual_axis(data_to_plot, plot_context, transf_factor, ceiling)
+  g <- generate_plot_spe_gear_dual_axis(data_to_plot, plot_context, transf_factor, function(x) { ceiling(x) + 2 })
   plots[[i]] <- g
 }
 
