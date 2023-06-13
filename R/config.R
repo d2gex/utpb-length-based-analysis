@@ -36,8 +36,11 @@ PlotContext <- R6Class("PlotContext", public = list(
   y_lab = NULL,
   second_y_lab = NULL,
   legend_title = NULL,
-  face_text = NULL,
   x_angle = NULL,
+  title_size = NULL,
+  face_text_size = NULL,
+  x_text_size = NULL,
+  y_text_size = NULL,
   legend_position = NULL
 ))
 
