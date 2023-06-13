@@ -37,17 +37,21 @@ plot_especies_arte_barplot <- function(data, plot_context, vertical_adjusment_fu
 
 }
 
-generate_individual_plot_spe_gear_dual_axis <- function(specie_data, plot_context, transf_factor, vertical_adjustment_func) {
-  #' Generate an individual double-axis plot for a particular species, one single year and its main representative gears
+generate_single_year_plot_spe_gear_dual_axis <- function(year_data, plot_context, transf_factor, vertical_adjustment_func) {
+      #' Generate an individual double-axis plot for a particular species, one single year and its main representative gears
 
-  g <- ggplot(specie_data, aes(x = reorder(ARTE, -mean_year_arte_talla))) +
+  g <- ggplot(year_data, aes(x = reorder(ARTE, -mean_year_arte_talla))) +
     geom_bar(aes(y = mean_year_arte_talla, fill = ARTE), stat = "identity", size = .1) +
-    geom_point(aes(y = year_arte_abundance / transf_factor)) +
-    geom_line(aes(y = year_arte_abundance / transf_factor, group = 1), size = 0.5) +
-    scale_y_continuous(sec.axis = sec_axis(~. * transf_factor))
+    geom_point(aes(y = year_arte_abundance / transf_factor))
+
+  # do we have more than one gear per year so that we can draw a line?
+  if (nrow(year_data) > 1) {
+    g <- g + geom_line(aes(y = year_arte_abundance / transf_factor, group = 1), size = 0.5)
+  }
+  g <- g + scale_y_continuous(sec.axis = sec_axis(~. * transf_factor))
 
   g <- add_text_to_graph_position(
-    g, specie_data,
+    g, year_data,
     'ARTE',
     'mean_year_arte_talla',
     'mean_year_arte_talla',
@@ -57,9 +61,9 @@ generate_individual_plot_spe_gear_dual_axis <- function(specie_data, plot_contex
 
   g <- add_text_to_graph_position(
     g,
-    specie_data,
+    year_data,
     'ARTE',
-    specie_data$year_arte_abundance / transf_factor,
+    year_data$year_arte_abundance / transf_factor,
     'year_arte_abundance',
     plot_context$face_text_size,
     vertical_adjustment_func
@@ -73,31 +77,42 @@ generate_individual_plot_spe_gear_dual_axis <- function(specie_data, plot_contex
           axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           legend.title = element_blank(),
-          plot.title = element_text(hjust = 0.5, size = plot_context$title_size )) +
+          plot.title = element_text(hjust = 0.5, size = plot_context$title_size)) +
     ggtitle(plot_context$title)
 
   return(g)
 }
 
-generate_all_plots_spe_gear_dual_axis <- function(data, years, specie, plot_context, vertical_adjustment_func) {
-  #' Generate all-year double-axis plots for a particular species and its main representative gears
+generate_all_plots_spe_gear_dual_axis <- function(species_data, years, plot_context, vertical_adjustment_func) {
+      #' Generate all-year double-axis plots for a particular species in the given data and its main representative gears
   # (1) Generate all plots per year
   plots <- list()
-  for (i in 1:length(years)) {
-    data_to_plot <- data[[specie]] %>%
-      filter(year == years[i])
-    mean_size <- mean(data_to_plot$mean_year_arte_talla)
-    mean_num_inds <- mean(data_to_plot$year_arte_abundance)
+  species_years <- sort(unique(species_data$year))
+  for (s_year in species_years) {
+    year_data <- species_data %>%
+      filter(year == s_year)
+    mean_size <- mean(year_data$mean_year_arte_talla)
+    mean_num_inds <- mean(year_data$year_arte_abundance)
     transf_factor <- get_nearest_base(mean_num_inds / mean_size)
-    plot_context$title <- years[i]
-    g <- generate_individual_plot_spe_gear_dual_axis(data_to_plot,
-                                                     plot_context, transf_factor, vertical_adjustment_func)
-    plots[[i]] <- g
+    plot_context$title <- s_year
+    g <- generate_single_year_plot_spe_gear_dual_axis(year_data,
+                                                      plot_context, transf_factor, vertical_adjustment_func)
+    plots[[as.character(s_year)]] <- g
   }
 
   # (2) Split plots into two sets (pdf sheets later on)
-  plot_groups <- list(list(subset = plots[1:16], ncol = 4, nrow = 4),
-                      list(subset = plots[17:length(years)], ncol = 3, nrow = 3))
+  if (length(species_years) != length(years)) {
+    missing_years <- lapply(setdiff(years, species_years), as.character)
+    empty_plots <- lapply(missing_years, function(x) {
+      create_empty_plot(empty_message = 'Not available', title = x)
+    })
+    missing_plots <- setNames(empty_plots, unlist(unname(missing_years)))
+    plots <- c(plots, missing_plots)
+    plots <- plots[sort(names(plots))]
+  }
+  plot_groups <- list(list(subset = unname(plots[1:16]), ncol = 4, nrow = 4),
+                      list(subset = unname(plots[17:length(years)]), ncol = 3, nrow = 3))
+
 
   plot_sheets <- list()
   for (i in seq_along(plot_groups)) {
@@ -111,10 +126,22 @@ generate_all_plots_spe_gear_dual_axis <- function(data, years, specie, plot_cont
       )
     gg_plot <- annotate_figure(outer_grid,
                                left = text_grob("Mean Length (cm)", rot = 90, vjust = 1),
-                               right = text_grob("Number of Individuals", rot = 270,vjust = 1),
+                               right = text_grob("Number of Individuals", rot = 270, vjust = 1),
                                bottom = text_grob("Gears"))
     plot_sheets[[i]] <- gg_plot
   }
   return(plot_sheets)
 
+}
+
+generate_all_plots_all_spe_gear_dual_axis <- function(data, years, plot_context, vertical_adjustment_func) {
+      #' Generate all-year double-axis plots for a all species in the given data and their main representative gears
+  species <- names(data)
+  species_plot <- list()
+  for (ind_species in species) {
+    species_data <- data[[ind_species]]
+    s_plot_list <- generate_all_plots_spe_gear_dual_axis(species_data, years, plot_context, vertical_adjustment_func)
+    species_plot[[ind_species]] <- s_plot_list
+  }
+  return(species_plot)
 }

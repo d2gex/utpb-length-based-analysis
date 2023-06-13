@@ -13,6 +13,16 @@ create_empty_dataframe <- function(col_names) {
   return(df)
 }
 
+create_empty_plot <- function(empty_message, title) {
+  g <- ggplot() +
+    theme_void() +
+    geom_text(aes(0, 0, label = empty_message)) +
+    xlab(NULL) +
+    ggtitle(title) +
+    theme(plot.title = element_text(hjust = 0.5))
+  return(g)
+}
+
 get_nearest_base <- function(x) {
   return(10^ceiling(log10(x)))
 }

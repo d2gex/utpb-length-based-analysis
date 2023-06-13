@@ -49,17 +49,26 @@ plot_context$legend_position <- "none"
 
 years <- sort(unique((clean_db_data_tallas %>%
   mutate(year = as.numeric(format(largada_time, format = "%Y"))))$year))
-plot_sheets <- generate_all_plots_spe_gear_dual_axis(yearly_esp_arte_report$summary,
-                                                     years,
-                                                     "Trisopterus luscus",
-                                                     plot_context,
-                                                     ceiling)
+list()
+data_test <- list('Loligo vulgaris' = yearly_esp_arte_report$summary[['Loligo vulgaris']])
+data_to_plot <- data_test[['Loligo vulgaris']] %>% filter(year == 1999)
+g <- generate_single_year_plot_spe_gear_dual_axis(data_to_plot, plot_context, 1000, ceiling)
 
-plots_to_pdf(plot_sheets,
-             "../data/sensitive/output/reports/t_luscus_main_ARTE_stats.pdf",
-             paper_type,
-             paper_height,
-             paper_width)
+species_plots <- generate_all_plots_all_spe_gear_dual_axis(yearly_esp_arte_report$summary,
+                                                           years,
+                                                           plot_context,
+                                                           ceiling)
+
+for (ind_species_plots in names(species_plots)) {
+  out_path <- paste0("../data/sensitive/output/reports/", gsub(" ", "_", ind_species_plots), ".pdf")
+  plots_to_pdf(species_plots[[ind_species_plots]],
+               out_path,
+               paper_type,
+               paper_height,
+               paper_width)
+
+}
+
 
 # # (2) Build plot 80-80 rule for especies and ARTE, respectively
 # plot_context <- PlotContext$new()
