@@ -100,15 +100,17 @@ outer_grid <-
   )
 
 plots_to_pdf(list(outer_grid),
-             "../data/sensitive/output/reports/overall_species_main_arte/overall_species_main_summary.pdf",
+             file.path(DATA_OUTPUT,"/reports/overall_species_main_arte/overall_species_main_summary.pdf"),
              paper_type,
              paper_height,
              paper_width)
 
 
 log_info("--> (7) Save individual species-main-gears reports")
+UP_TO_80_PATH <- file.path(DATA_OUTPUT, "/reports/individual_species_main_arte/up_to_80/")
+FROM_80_PATH <- file.path(DATA_OUTPUT, "/reports/individual_species_main_arte/from_80/")
 for (ind_species_plots in names(up_to_80_species_plots)) {
-  out_path <- paste0("../data/sensitive/output/reports/individual_species_main_arte/up_to_80/", gsub(" ", "_", ind_species_plots), ".pdf")
+  out_path <- file.path(UP_TO_80_PATH, paste0(gsub(" ", "_", ind_species_plots), ".pdf"))
   plots_to_pdf(up_to_80_species_plots[[ind_species_plots]],
                out_path,
                paper_type,
@@ -118,7 +120,7 @@ for (ind_species_plots in names(up_to_80_species_plots)) {
 }
 
 for (ind_species_plots in names(from_80_species_plots)) {
-  out_path <- paste0("../data/sensitive/output/reports/individual_species_main_arte/from_80/", gsub(" ", "_", ind_species_plots), ".pdf")
+  out_path <- file.path(FROM_80_PATH, paste0( gsub(" ", "_", ind_species_plots), ".pdf"))
   plots_to_pdf(from_80_species_plots[[ind_species_plots]],
                out_path,
                paper_type,
@@ -129,20 +131,19 @@ for (ind_species_plots in names(from_80_species_plots)) {
 
 log_info("--> (8) Write down overall and main individual csvs")
 write_csv(overall_esp_arte_report$summary_up_to_threshold,
-          "../data/sensitive/output/reports/overall_species_main_arte/overall_80.csv")
+          file.path(DATA_OUTPUT, "/reports/overall_species_main_arte/overall_80.csv"))
 write_csv(overall_esp_arte_report$summary_from_threshold,
-          "../data/sensitive/output/reports/overall_species_main_arte/overall_20.csv")
+          file.path(DATA_OUTPUT,"/reports/overall_species_main_arte/overall_20.csv"))
 
 for (ind_species in names(yearly_esp_arte_report_80$summary)) {
-  out_path <- paste0("../data/sensitive/output/reports/individual_species_main_arte/up_to_80/", gsub(" ", "_", ind_species), ".csv")
+  out_path <- file.path(UP_TO_80_PATH, paste0(gsub(" ", "_", ind_species), ".csv"))
   write_csv(yearly_esp_arte_report_80$summary[[ind_species]],
             out_path)
 
 }
 for (ind_species in names(yearly_esp_arte_report_20$summary)) {
-  out_path <- paste0("../data/sensitive/output/reports/individual_species_main_arte/from_80/", gsub(" ", "_", ind_species), ".csv")
+  out_path <- file.path(FROM_80_PATH, paste0(gsub(" ", "_", ind_species), ".csv"))
   write_csv(yearly_esp_arte_report_20$summary[[ind_species]],
             out_path)
 
 }
-

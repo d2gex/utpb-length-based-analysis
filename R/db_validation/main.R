@@ -222,7 +222,7 @@ tallas_map <- zone_filter$get_quick_map_data(fields) %>%
   rename(lon = lon_utm, lat = lat_utm)
 
 # Last (Output the results(
-write_csv(tallas_map, "../qgis/output/clean_db_tallas_map.csv")
-write_csv(no_tallas_peso_df, "../data/sensitive/output/species_talla_peso_as_na.csv")
-write_csv(zone_filter$clean_df, "../data/sensitive/output/clean_db_tallas.csv")
+write_csv(tallas_map, file.path(QGIS_OUTPUT, "/clean_db_tallas_map.csv"))
+write_csv(no_tallas_peso_df, file.path(DATA_OUTPUT,"/species_talla_peso_as_na.csv"))
+write_csv(zone_filter$clean_df, file.path(DATA_OUTPUT,"/clean_db_tallas.csv"))
 

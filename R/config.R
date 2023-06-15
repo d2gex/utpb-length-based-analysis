@@ -1,12 +1,14 @@
 library("R6")
-DATA_PATH <- "../../repos_data/utpblbm/data"
+DATA_PATH <- "../../../repos_data/utpblbm/data"
+QGIS_PATH <- "../../../repos_data/utpblbm/qgis"
 DATA_SENSITIVE_PATH <- file.path(DATA_PATH, 'sensitive')
 OLD_DBS_PATH <- file.path(DATA_SENSITIVE_PATH, 'consulta_utpb_2018')
 DB_TALLAS_PATH <- file.path(DATA_SENSITIVE_PATH, 'CONSULTA BDP_UTPB_TALLAS_17-04-2023_.csv')
-DB_CAPTURAS_PATH <- file.path(DATA_SENSITIVE_PATH, 'CONSULTA BDP_UTPB_CAPTURAS_12-04-2023.csv')
+DB_CAPTURAS_PATH <- file.path(DATA_SENSITIVE_PATH, 'CONSULTA BDP_UTPB_CAPTURAS_12-04-2023.CSV')
 DB_TALLAS_OLD_PATH <- file.path(OLD_DBS_PATH, 'CONSULTA BDP_UTPB_TALLAS_16-05-2018.csv')
 DB_CAPUTRAS_OLD_PATH <- file.path(OLD_DBS_PATH, 'CONSULTA BDP_UTPB_CAPTURAS_16-05-2018.csv')
 DATA_OUTPUT <- file.path(DATA_SENSITIVE_PATH, 'output')
+QGIS_OUTPUT <- file.path(QGIS_PATH, 'output')
 DB_READ <- FALSE
 
 
