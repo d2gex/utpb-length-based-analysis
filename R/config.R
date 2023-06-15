@@ -1,5 +1,5 @@
 library("R6")
-DATA_PATH <- "../data"
+DATA_PATH <- "../../repos_data/utpblbm/data"
 DATA_SENSITIVE_PATH <- file.path(DATA_PATH, 'sensitive')
 OLD_DBS_PATH <- file.path(DATA_SENSITIVE_PATH, 'consulta_utpb_2018')
 DB_TALLAS_PATH <- file.path(DATA_SENSITIVE_PATH, 'CONSULTA BDP_UTPB_TALLAS_17-04-2023_.csv')
