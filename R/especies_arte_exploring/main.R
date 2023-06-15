@@ -34,21 +34,21 @@ mute <- overall_esp_arte_report$summary_from_threshold %>%
   assert(not_na, colnames(.))
 
 plot_context <- PlotContext$new()
-plot_context.title <- "80%-80% rule: Most contributing species \n and gears"
-plot_context.x_lab <- "Species"
-plot_context.y_lab <- "Species contribution to the sampling(%)"
-plot_context.legend_title <- 'Gears'
-plot_context.face_text_size <- 4
-plot_context.x_angle <- 45
+plot_context$title <- "80%-80% rule: Most contributing species \n and gears"
+plot_context$x_lab <- "Species"
+plot_context$y_lab <- "Species contribution to the sampling(%)"
+plot_context$legend_title <- 'Gears'
+plot_context$face_text_size <- 4
+plot_context$x_angle <- 45
 g_most_especies <- plot_especies_arte_barplot(overall_esp_arte_report$summary_up_to_threshold,
                                               plot_context,
                                               vertical_adjusment_func = ceiling)
 
 log_info("--> (3) Generate overall species-main-gears plots for less contributing species")
 # (3) Build plot 20-80 rule for especies and ARTE, respectively
-plot_context.title <- "20%-80% rule: Less contributing species and \n most contributed gears"
-plot_context.face_text_size <- 2.5
-plot_context.x_angle <- 90
+plot_context$title <- "20%-80% rule: Least contributing species and \n most contributed gears"
+plot_context$face_text_size <- 2.5
+plot_context$x_angle <- 90
 g_least_species <- plot_especies_arte_barplot(overall_esp_arte_report$summary_from_threshold,
                                               plot_context,
                                               vertical_adjusment_func = function(x) round(x, 1) + 0.1)
