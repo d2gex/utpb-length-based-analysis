@@ -1,5 +1,8 @@
 library("data.table")
 library("sf")
+library("testit")
+library("assertr")
+library("dplyr")
 
 get_column_data_type <- function(df, column_name) {
   return(
@@ -29,6 +32,47 @@ get_nearest_base <- function(x) {
 
 is_single_string <- function(input) {
   is.character(input) & length(input) == 1
+}
+
+generate_catch_at_length_freq_table <- function(data, bindwith, variable, reference) {
+  # // @formatter:off
+  #' Convert a multivariable
+  # // @formatter:on
+
+  # (1) Create intervals and midpoints over the whole time series
+  unique_refs <- unique(data[[reference]])
+  min <- floor(min(data[, variable]))
+  max <- ceiling(max(data[, variable]))
+  half_bindwith <- bindwith / 2
+  unique_intervals <- seq(min, max, bindwith)
+  mid_points <- seq(min + half_bindwith, max - half_bindwith, bindwith)
+  lengt_test <- length(unique_intervals) == length(mid_points) + 1
+  testit::assert(deparse(lengt_test), lengt_test)
+
+  # (2) Build the individual yearly catch at length frequency table
+  # and concat them all together
+  columns <- c('year', 'interval', 'midpoint', 'freq')
+  catch_length_df <- create_empty_dataframe(columns)
+  for (ref in unique_refs) {
+    #  --> Build frequency table
+    year_data <- data %>% filter_at(.vars = reference, ~.x == ref)
+    year_intervals <- as.data.frame(
+      table(
+        cut(year_data[, variable], unique_intervals),
+        dnn = columns[2]),
+      responseName = columns[4])
+    # --> Add midpoints and year columns
+    year_intervals <- year_intervals %>%
+      mutate(
+        !!columns[3] := mid_points,
+        !!reference := ref
+      ) %>%
+      select_at(.vars = columns)
+    # --> concat year intervals together
+    catch_length_df <- rbind(catch_length_df, year_intervals)
+
+  }
+  return(catch_length_df)
 }
 
 make_cols_same_length <- function(col_1, col_2, fill) {

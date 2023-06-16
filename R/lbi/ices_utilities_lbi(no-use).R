@@ -1,6 +1,4 @@
-
-
-bin_plot <- function(data, binwidth, l_units){
+bin_plot <- function(data, binwidth, l_units) {
   newDat <- bin_mat(data, binwidth)
 
   LB_pars <- new("LB_pars", default = FALSE)
@@ -24,9 +22,9 @@ bin_mat <- function(data, binwidth) {
   # Returns data frame:
   # lclass, lmidp, and years
 
-  current_binwidth <- data[2,1] - data[1,1]
+  current_binwidth <- data[2, 1] - data[1, 1]
 
-  if(current_binwidth > binwidth) {
+  if (current_binwidth > binwidth) {
     stop("Bin width (", binwidth, ") should be greater than original bin width (",
          current_binwidth, ").")
   }
@@ -36,8 +34,8 @@ bin_mat <- function(data, binwidth) {
 
   data[is.na(data)] <- 0
 
-  minCL <- floor((min(data[,1]) - .5) / binwidth) * binwidth
-  maxCL <- ceiling((max(data[,1]) + .5) / binwidth) * binwidth
+  minCL <- floor((min(data[, 1]) - .5) / binwidth) * binwidth
+  maxCL <- ceiling((max(data[, 1]) + .5) / binwidth) * binwidth
 
   minCL <- ifelse(minCL <= 0, 0, minCL)
 
@@ -45,11 +43,11 @@ bin_mat <- function(data, binwidth) {
                     maxCL,
                     binwidth)
 
-  data$LC <- cut(data[,1],
+  data$LC <- cut(data[, 1],
                  breaks = break_list,
                  include.lowest = T)
 
-  dWide <- aggregate(data[, 3:ncol(data)-1],
+  dWide <- aggregate(data[, 3:ncol(data) - 1],
                      by = list(data$LC),
                      sum, na.rm = FALSE)
 
@@ -78,7 +76,6 @@ lb_ind <- function(data,
                    lmat,
                    mk_ratio = 1.5, # m/k ratio
                    weight) {
-
 
 
   # if(is.null(weight)) {
@@ -120,14 +117,14 @@ lb_ind <- function(data,
 
   # newDat <- bin_mat(data, binwidth)
 
-  for(j in 3:ncol(newDat)) {
+  for (j in 3:ncol(newDat)) {
     index.max <- which.max(newDat[, j])
-    res$lmidp[j-2] <- newDat$lmidp[index.max]
-    res$nmax[j-2] <- newDat[index.max, j]
-    a <- 0.5 * res$nmax[j-2]
+    res$lmidp[j - 2] <- newDat$lmidp[index.max]
+    res$nmax[j - 2] <- newDat[index.max, j]
+    a <- 0.5 * res$nmax[j - 2]
     possible.lc <- which(newDat[1:index.max, j] >= a)
     lc <- newDat$lmidp[possible.lc[1]]
-    res$lc[j-2] <- lc
+    res$lc[j - 2] <- lc
   }
 
   Ind$Lc <- res$lc
@@ -135,12 +132,12 @@ lb_ind <- function(data,
   Ind$Lopt <- linf * (3 / (3 + mk_ratio))
   Ind$Linf <- linf
 
-  final <- newDat[,-1]
-  for(jj in (1:length(Year)) + 1){
-    j <- jj-1
+  final <- newDat[, -1]
+  for (jj in (1:length(Year)) + 1) {
+    j <- jj - 1
 
     final2 <- final[, c(1, jj)]
-    colnames(final2) <- c("lngth","number")
+    colnames(final2) <- c("lngth", "number")
 
     final2$cumsum <- cumsum(final2[, 2])
     final2$cumsum_perc <- final2$cumsum / sum(final2$number)
@@ -150,8 +147,8 @@ lb_ind <- function(data,
     numb <- as.data.frame(final2[rev(order(final2$lngth)), "number"])
     colnames(numb) <- "number"
     numb$cum <- cumsum(numb$number)
-    numb$lngth <- final2[rev(order(final2$lngth)),"lngth"]
-    numb$cumperc <- round(numb$cum/sum(numb$number),5)
+    numb$lngth <- final2[rev(order(final2$lngth)), "lngth"]
+    numb$cumperc <- round(numb$cum / sum(numb$number), 5)
     numb$num5 <- 0
     numb[numb$cumperc <= 0.05, "num5"] <- numb[numb$cumperc <= 0.05, "number"]
     numb[max(which(numb$cumperc <= 0.05)) + 1,
@@ -167,15 +164,15 @@ lb_ind <- function(data,
     Ind[j, "L90"] <- min(final2[which(final2$cumsum_perc >= 0.90), "lngth"])
 
     # calculate mean of individuals above Lc
-    final3 <- final2[final2$lngth >= Ind[j, "Lc"], ]
+    final3 <- final2[final2$lngth >= Ind[j, "Lc"],]
     Ind[j, "Lmean"] <- sum(final3$lngth * final3$number) / sum(final3$number)
 
     # length class with max yield
-    if(!is.null(weight)) {
-    final2$biomass <- final2$number * weight[, jj]
-    Ind[j, "Lmaxy"] <- final2[final2$biomass == max(final2$biomass), "lngth"]
+    if (!is.null(weight)) {
+      final2$biomass <- final2$number * weight[, jj]
+      Ind[j, "Lmaxy"] <- final2[final2$biomass == max(final2$biomass), "lngth"]
     } else {
-    Ind[j, "Lmaxy"] <- NA
+      Ind[j, "Lmaxy"] <- NA
     }
 
     Lopt <- linf * (3 / (3 + mk_ratio))
@@ -189,8 +186,8 @@ lb_ind <- function(data,
 
     fmsyM_ratio <- 1
     gamma_LFeM <- fmsyM_ratio
-    theta_LFeM <- 1/mk_ratio
-    Ind[j, "LFeM"] <- (theta_LFeM * Ind[j, "Linf"] + Ind[j, "Lc"] * (gamma_LFeM + 1))/(theta_LFeM + gamma_LFeM + 1)
+    theta_LFeM <- 1 / mk_ratio
+    Ind[j, "LFeM"] <- (theta_LFeM * Ind[j, "Linf"] + Ind[j, "Lc"] * (gamma_LFeM + 1)) / (theta_LFeM + gamma_LFeM + 1)
     #Ind[j, "LFeM"] <- 0.75 * Ind[j, "Lc"] + 0.25 * Ind[j, "Linf"]
   }
 
@@ -252,13 +249,13 @@ lb_plot <- function(data,
   ymax_f <- max(Ind$Lmean_LFeM,
                 na.rm = TRUE)
 
-    par(mar = c(4, 4, 3, 6.1),
-        mfrow = c(3, 2),
-        family = "serif",
-        cex = 1,
-        xpd = TRUE)
+  par(mar = c(4, 4, 3, 6.1),
+      mfrow = c(3, 2),
+      family = "serif",
+      cex = 1,
+      xpd = TRUE)
 
-  par(mfg = c(1,1))
+  par(mfg = c(1, 1))
   plot(Linf ~ Year,
        data = Ind,
        ylab = paste("Length (", l_units, ")", sep = ""),
@@ -275,8 +272,8 @@ lb_plot <- function(data,
                     expression(L["c"]),
                     expression(L["inf"]),
                     expression(L["25%"])),
-         lwd = c(2,2,1,2,1,1),
-         lty = c(1,1,3,1,3,1),
+         lwd = c(2, 2, 1, 2, 1, 1),
+         lty = c(1, 1, 3, 1, 3, 1),
          text.col = c("purple", #L95 solid
                       "black", #Lmax5 Solid
                       "grey40", #Lmat dash
@@ -328,7 +325,7 @@ lb_plot <- function(data,
        xlab = "Year",
        ylim = c(0,
                 ymax_c * 1.1),
-       bty="l")
+       bty = "l")
   lines(L75 ~ Year,
         data = Ind,
         lwd = 1,
@@ -380,7 +377,7 @@ lb_plot <- function(data,
          seg.len = 0.7,
          inset = c(-0.15, 0))
 
-  par(mfg = c(3,1))
+  par(mfg = c(3, 1))
   plot(Lmat ~ Year,
        data = Ind,
        type = "n",
@@ -447,7 +444,7 @@ lb_plot <- function(data,
         data = Ind,
         lwd = 1,
         col = "black",
-        lty="dashed")
+        lty = "dashed")
   lines(Lc_Lmat ~ Year,
         data = Ind,
         lwd = 2,
@@ -457,12 +454,12 @@ lb_plot <- function(data,
         lwd = 2,
         col = "darkred")
   legend("topright",
-         legend = c(expression(L["max5%"]/L["inf"]),
-                    expression(L["95%"]/L["inf"]),
+         legend = c(expression(L["max5%"] / L["inf"]),
+                    expression(L["95%"] / L["inf"]),
                     expression(P["mega"]),
                     expression("30%"),
-                    expression(L["c"]/L["mat"]),
-                    expression(L["25"]/L["mat"])),
+                    expression(L["c"] / L["mat"]),
+                    expression(L["25"] / L["mat"])),
          lwd = c(2, 2, 2, 1, 2, 2),
          lty = c(1, 1, 1, 3, 1, 1),
          text.col = c("black",
@@ -481,7 +478,7 @@ lb_plot <- function(data,
          seg.len = 0.7,
          inset = c(-0.2, 0))
 
-  par(mfg = c(2,2))
+  par(mfg = c(2, 2))
   plot(Lmean_Lopt ~ Year,
        data = Ind,
        ylab = "Indicator Ratio",
@@ -500,8 +497,8 @@ lb_plot <- function(data,
         lwd = 2,
         col = "green")
   legend("topright",
-         legend = c(expression(L["mean"]/L["opt"]),
-                    expression(L["maxy"]/L["opt"])),
+         legend = c(expression(L["mean"] / L["opt"]),
+                    expression(L["maxy"] / L["opt"])),
          col = c("darkred",
                  "green"),
          text.col = c("darkred",
@@ -512,7 +509,7 @@ lb_plot <- function(data,
          seg.len = 0.7,
          inset = c(-0.2, 0))
 
-  par(mfg = c(3,2))
+  par(mfg = c(3, 2))
   plot(Lmean_LFeM ~ Year,
        data = Ind,
        type = "n",
@@ -528,7 +525,7 @@ lb_plot <- function(data,
         lwd = 2,
         col = "blue")
   legend("topright",
-         legend = expression(L["mean"]/L["F=M"]),
+         legend = expression(L["mean"] / L["F=M"]),
          col = "blue",
          text.col = "blue",
          lty = 1,
@@ -536,7 +533,7 @@ lb_plot <- function(data,
          bty = "n",
          seg.len = 0.7,
          inset = c(-0.2, 0))
-# dev.off()
+  # dev.off()
 }
 
 lb_doc <- function(data,
@@ -551,10 +548,10 @@ lb_doc <- function(data,
   base_text_prop <- textProperties(font.family = "Calibri")
 
 
-  tmpfile_lfd <-  tempfile(pattern = paste(stock ,"_LFD_", sep = ""),
-                           fileext = ".png")
-  tmpfile_indicator <-  tempfile(pattern = paste(stock ,"_Indicator_", sep = ""),
-                                 fileext = ".png")
+  tmpfile_lfd <- tempfile(pattern = paste(stock, "_LFD_", sep = ""),
+                          fileext = ".png")
+  tmpfile_indicator <- tempfile(pattern = paste(stock, "_Indicator_", sep = ""),
+                                fileext = ".png")
 
 
   ggsave(plot = suppressMessages(bin_plot(data,
@@ -598,8 +595,12 @@ lb_doc <- function(data,
                        font.size = 11))
   }
 
-  linf_pot <- head_pot("L") + subscript_pot("inf") + head_pot(paste0(" = ", linf))
-  lmat_pot <- head_pot("L") + subscript_pot("mat") + head_pot(paste0(" = ", lmat))
+  linf_pot <- head_pot("L") +
+    subscript_pot("inf") +
+    head_pot(paste0(" = ", linf))
+  lmat_pot <- head_pot("L") +
+    subscript_pot("mat") +
+    head_pot(paste0(" = ", lmat))
 
   draftDoc <- docx(template = "data/report_template.docx",
                    title = stock)
@@ -635,30 +636,30 @@ lb_doc <- function(data,
 
   draftDoc <- addImage(draftDoc,
                        filename = tmpfile_indicator,
-                       width = 17/2.54,
-                       height = 16/2.54,
+                       width = 17 / 2.54,
+                       height = 16 / 2.54,
                        bookmark = "INDICATOR_PLOT")
 
   draftDoc <- addImage(draftDoc,
                        filename = tmpfile_lfd,
-                       width = 12/2.54,
-                       height = 10/2.54,
+                       width = 12 / 2.54,
+                       height = 10 / 2.54,
                        bookmark = "LFD_PLOT")
 
   draftDoc <- addFlexTable(draftDoc,
                            flextable = lb_raw_dat(data = data,
-                                                binwidth,
-                                                l_units),
+                                                  binwidth,
+                                                  l_units),
                            bookmark = "LFD_TABLE")
 
   draftDoc <- deleteBookmark(draftDoc,
                              bookmark = "LFD_TABLE")
 
 
-    draftDoc <- addFlexTable(draftDoc,
+  draftDoc <- addFlexTable(draftDoc,
                            flextable = lb_raw_dat(data = weight,
-                                                binwidth,
-                                                l_units),
+                                                  binwidth,
+                                                  l_units),
                            bookmark = "WAL_TABLE")
 
   draftDoc <- deleteBookmark(draftDoc,
@@ -688,7 +689,7 @@ lb_table <- function(data,
 
 
   ref_level <- c(0, 1, 1, 0.8, 0.3, 0.9, 1)
-  years <- seq(max(Ind$Year) - 2,  max(Ind$Year))
+  years <- seq(max(Ind$Year) - 2, max(Ind$Year))
   flex_dat <- Ind[c("Year",
                     "Lc_Lmat", "L25_Lmat", "Lmax5_Linf", "Pmega",
                     "Lmean_Lopt", "Lmean_LFeM")]
@@ -712,7 +713,7 @@ lb_table <- function(data,
                            text.properties = textNormal(),
                            value = c("Year",
                                      rep("", 6)),
-                           colspan = rep(1,7))
+                           colspan = rep(1, 7))
 
   head_pot <- function(text) {
     pot(text,
@@ -732,53 +733,68 @@ lb_table <- function(data,
   flex_tab[1:2, , to = "header"] <- textProperties(font.family = "Calibri",
                                                    font.weight = "normal",
                                                    font.size = 9)
-  flex_tab[2, 2, to = "header"] <- head_pot("L") + subscript_pot("c") + head_pot(" / L") + subscript_pot("mat")
-  flex_tab[2, 3, to = "header"] <- head_pot("L") + subscript_pot("25%") + head_pot(" / L") + subscript_pot("mat")
-  flex_tab[2, 4, to = "header"] <- head_pot("L") + subscript_pot("max 5") + head_pot(" / L") + subscript_pot("inf")
+  flex_tab[2, 2, to = "header"] <- head_pot("L") +
+    subscript_pot("c") +
+    head_pot(" / L") +
+    subscript_pot("mat")
+  flex_tab[2, 3, to = "header"] <- head_pot("L") +
+    subscript_pot("25%") +
+    head_pot(" / L") +
+    subscript_pot("mat")
+  flex_tab[2, 4, to = "header"] <- head_pot("L") +
+    subscript_pot("max 5") +
+    head_pot(" / L") +
+    subscript_pot("inf")
   flex_tab[2, 5, to = "header"] <- head_pot("P") + subscript_pot("mega")
-  flex_tab[2, 6, to = "header"] <- head_pot("L") + subscript_pot("mean") + head_pot(" / L") + subscript_pot("opt")
-  flex_tab[2, 7, to = "header"] <- head_pot("L") + subscript_pot("mean") + head_pot(" / L") + subscript_pot("F = M")
+  flex_tab[2, 6, to = "header"] <- head_pot("L") +
+    subscript_pot("mean") +
+    head_pot(" / L") +
+    subscript_pot("opt")
+  flex_tab[2, 7, to = "header"] <- head_pot("L") +
+    subscript_pot("mean") +
+    head_pot(" / L") +
+    subscript_pot("F = M")
   flex_tab[1:2, , to = "header"] <- parProperties(text.align = "center",
                                                   padding = 3)
   flex_tab[1:2, , to = "header"] <- cellProperties(background.color = "#E8EAEA")
 
   # Body formatting
-  flex_tab[ , 1 , to = "body"] <- parProperties(text.align = "center",
-                                                padding = 3 )
-  flex_tab[ , 2:7 , to = "body"] <- parProperties(text.align = "right",
-                                                  padding = 3 )
+  flex_tab[, 1, to = "body"] <- parProperties(text.align = "center",
+                                              padding = 3)
+  flex_tab[, 2:7, to = "body"] <- parProperties(text.align = "right",
+                                                padding = 3)
 
   flex_tab <- setFlexTableBackgroundColors(flex_tab,
                                            j = 2,
-                                           colors = ifelse(flex_dat[,2] > ref_level[2],
+                                           colors = ifelse(flex_dat[, 2] > ref_level[2],
                                                            "#aec640",
                                                            "#f15d2a"))
   flex_tab <- setFlexTableBackgroundColors(flex_tab,
                                            j = 3,
-                                           colors = ifelse(flex_dat[,3] > ref_level[3],
+                                           colors = ifelse(flex_dat[, 3] > ref_level[3],
                                                            "#aec640",
                                                            "#f15d2a"))
   flex_tab <- setFlexTableBackgroundColors(flex_tab,
                                            j = 4,
-                                           colors = ifelse(flex_dat[,4] > ref_level[4],
+                                           colors = ifelse(flex_dat[, 4] > ref_level[4],
                                                            "#aec640",
                                                            "#f15d2a"))
   flex_tab <- setFlexTableBackgroundColors(flex_tab,
                                            j = 5,
-                                           colors = ifelse(flex_dat[,5] > ref_level[5],
+                                           colors = ifelse(flex_dat[, 5] > ref_level[5],
                                                            "#aec640",
                                                            "#f15d2a"))
   flex_tab <- setFlexTableBackgroundColors(flex_tab,
                                            j = 6,
-                                           colors = ifelse(flex_dat[,6] > ref_level[6],
+                                           colors = ifelse(flex_dat[, 6] > ref_level[6],
                                                            "#aec640",
                                                            "#f15d2a"))
   flex_tab <- setFlexTableBackgroundColors(flex_tab,
                                            j = 7,
-                                           colors = ifelse(flex_dat[,7] >= ref_level[7],
+                                           colors = ifelse(flex_dat[, 7] >= ref_level[7],
                                                            "#aec640",
                                                            "#f15d2a"))
-  setFlexTableWidths(flex_tab, c((1.4/2.54), rep(2.76/2.54, 6)))
+  setFlexTableWidths(flex_tab, c((1.4 / 2.54), rep(2.76 / 2.54, 6)))
 
   return(flex_tab)
 }
@@ -791,10 +807,10 @@ lb_raw_dat <- function(data,
   Ind <- bin_mat(data = data,
                  binwidth = binwidth)
 
-  Ind[,-1] <- round(Ind[,-1], 2)
+  Ind[, -1] <- round(Ind[, -1], 2)
   cols <- c(paste0("Length class \n(", l_units, ")"),
-             paste0("Length midpoint \n(", l_units, ")"),
-             gsub("X", "", colnames(Ind[-(1:2)])))
+            paste0("Length midpoint \n(", l_units, ")"),
+            gsub("X", "", colnames(Ind[-(1:2)])))
 
   flex_tab <- FlexTable(Ind, header.columns = FALSE,
                         body.text.props = textProperties(font.family = "Calibri",
@@ -812,7 +828,7 @@ lb_raw_dat <- function(data,
                            value = cols)
 
   # Body formatting
-  flex_tab[ , 1:2 , to = "body"] <- parProperties(text.align = "center",
-                                                  padding = 3 )
+  flex_tab[, 1:2, to = "body"] <- parProperties(text.align = "center",
+                                                padding = 3)
   return(flex_tab)
 }

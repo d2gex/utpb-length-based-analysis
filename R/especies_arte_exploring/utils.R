@@ -38,7 +38,7 @@ plot_especies_arte_barplot <- function(data, plot_context, vertical_adjusment_fu
 }
 
 generate_single_year_plot_spe_gear_dual_axis <- function(year_data, plot_context, transf_factor, vertical_adjustment_func) {
-      #' Generate an individual double-axis plot for a particular species, one single year and its main representative gears
+        #' Generate an individual double-axis plot for a particular species, one single year and its main representative gears
 
   g <- ggplot(year_data, aes(x = reorder(ARTE, -mean_year_arte_talla))) +
     geom_bar(aes(y = mean_year_arte_talla, fill = ARTE), stat = "identity", size = .1) +
@@ -84,7 +84,7 @@ generate_single_year_plot_spe_gear_dual_axis <- function(year_data, plot_context
 }
 
 generate_all_plots_spe_gear_dual_axis <- function(species_data, years, plot_context, vertical_adjustment_func) {
-      #' Generate all-year double-axis plots for a particular species in the given data and its main representative gears
+        #' Generate all-year double-axis plots for a particular species in the given data and its main representative gears
   # (1) Generate all plots per year
   plots <- list()
   species_years <- sort(unique(species_data$year))
@@ -135,7 +135,7 @@ generate_all_plots_spe_gear_dual_axis <- function(species_data, years, plot_cont
 }
 
 generate_all_plots_all_spe_gear_dual_axis <- function(data, years, plot_context, vertical_adjustment_func) {
-      #' Generate all-year double-axis plots for a all species in the given data and their main representative gears
+        #' Generate all-year double-axis plots for a all species in the given data and their main representative gears
   species <- names(data)
   species_plot <- list()
   for (ind_species in species) {
