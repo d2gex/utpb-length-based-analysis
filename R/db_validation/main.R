@@ -221,8 +221,11 @@ fields <- c('Idlance', 'lon_utm', 'lat_utm')
 tallas_map <- zone_filter$get_quick_map_data(fields) %>%
   rename(lon = lon_utm, lat = lat_utm)
 
-# Last (Output the results(
-write_csv(tallas_map, file.path(QGIS_OUTPUT, "/clean_db_tallas_map.csv"))
-write_csv(no_tallas_peso_df, file.path(DATA_OUTPUT,"/species_talla_peso_as_na.csv"))
-write_csv(zone_filter$clean_df, file.path(DATA_OUTPUT,"/clean_db_tallas.csv"))
+log_info("--> (10) Add year column to dataset")
+zone_filter$clean_df <- zone_filter$clean_df %>%
+  mutate(year = as.numeric(format(largada_time, format = "%Y")))
 
+# Last (Output the results)
+write_csv(tallas_map, file.path(QGIS_OUTPUT, "/clean_db_tallas_map.csv"))
+write_csv(no_tallas_peso_df, file.path(DATA_OUTPUT, "/species_talla_peso_as_na.csv"))
+write_csv(zone_filter$clean_df, file.path(DATA_OUTPUT, "/clean_db_tallas.csv"))

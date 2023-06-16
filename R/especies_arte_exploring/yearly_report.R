@@ -29,7 +29,6 @@ EspeciesArteYearReport <- R6Class("EspeciesArteYearReport", inherit = Report, pu
     # takes up one single row
     specie_df <- self$db_data %>%
       filter(ESPECIE == specie_name) %>%
-      mutate(year = as.numeric(format(largada_time, format = "%Y"))) %>%
       select(ESPECIE, TALLA, year, NUMINDIVS, ARTE) %>%
       uncount(NUMINDIVS)
 
