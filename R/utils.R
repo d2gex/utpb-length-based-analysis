@@ -3,6 +3,13 @@ library("sf")
 library("testit")
 library("assertr")
 library("dplyr")
+library("readr")
+
+read_csv_input <- function(filename) {
+  return (as.data.frame(
+    read_csv(filename, locale = locale(encoding = 'latin1'))
+  ))
+}
 
 get_column_data_type <- function(df, column_name) {
   return(

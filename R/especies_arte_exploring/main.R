@@ -12,7 +12,7 @@ source("especies_arte_exploring/overall_report.R")
 source("especies_arte_exploring/yearly_report.R")
 
 log_info("---------Generating plots that show most representative gears for all species ---------------")
-if (!exists('db_data_tallas')) {
+if (!exists('clean_db_data_tallas')) {
   clean_db_data_tallas <- read_csv(file.path(DATA_OUTPUT, 'clean_db_tallas.csv'), locale = locale(encoding = 'latin1'))
 }
 
