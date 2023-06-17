@@ -8,9 +8,10 @@ CatchAtLength <- R6Class("CatchAtLength", public = list(
   species_data = NULL,
   summary_long = NULL,
   summary_wide = NULL,
-  initialize = function(db_data, specie) {
+  initialize = function(db_data, specie, gears) {
     self$species_data <- db_data %>%
       filter(ESPECIE == specie) %>%
+      filter(ARTE %in% gears) %>%
       select(year, TALLA)
   },
 
