@@ -89,6 +89,12 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                         catch_length_df <- rbind(catch_length_df, yearly_intervals)
                                       }
                                       return(catch_length_df)
-                                    }
+                                    },
 
+                                    generate_mean_weight_at_length = function(size_interval_weight_df) {
+                                      average_weight <- size_interval_weight_df %>%
+                                        group_by_at(.vars = c(self$time_col, self$interval_col)) %>%
+                                        summarise(mean_weight = mean(.data[[self$weight_col]], na.rm = TRUE))
+                                      return(as.data.frame(average_weight))
+                                    }
                                   ))
