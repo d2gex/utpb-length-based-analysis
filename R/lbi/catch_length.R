@@ -6,18 +6,29 @@ source("utils.R")
 
 CatchAtLength <- R6Class("CatchAtLength", public = list(
   species_data = NULL,
-  # length composition when weight column is ignored and when weight is checked to be non-NA
+  species = NULL,
+  gears = NULL,
+  size_col = NULL,
+  weight_col = NULL,
+  # catch at length composition when the column weight is not taking into account
   talla_w.ignore_long = NULL,
+  # catch at length composition when the column weight must have a non-na value
   talla_w.notna_long = NULL,
-  talla_w.ignore_wide = NULL,
   talla_w.notna_wide = NULL,
-  # weight composition
+  # mean weight composition
   weight_long = NULL,
   weight_wide = NULL,
-  initialize = function(db_data, specie, gears) {
+
+  initialize = function(db_data, species, gears, time_col, size_col, weight_col) {
+    self$species <- species
+    self$gears <- gears
+    self$time_col <- time_col
+    self$size_col <- size_col
+    self$weight_col <- weight_col
     self$species_data <- db_data %>%
-      filter(ESPECIE == specie) %>%
-      filter(ARTE %in% gears)
+      filter(ESPECIE == self$species) %>%
+      filter(ARTE %in% self$gears) %>%
+      select_at(.vars = c(self$time_col, self$size_col, self$weight_col))
   },
   build_talla_and_weight_composition_matrices = function(bindwidth, col_prefix) {
     # // @formatter:off
@@ -59,18 +70,19 @@ CatchAtLength <- R6Class("CatchAtLength", public = list(
   }
 
 ), private = list(
-  build_variable_composition_matrix = function(data, bind_width, col_prefix, variable, reference) {
+  build_variable_composition_matrix = function(data, bind_width, col_prefix, variable,) {
     # // @formatter:off
     #' Build the year-basis composition matrix for a given variable (size or weight) and
     #' reference (typically 'year')
     # // @formatter:on
-    catch_at_length <- generate_catch_at_length_freq_table(data,
+    variable_composition <- generate_catch_at_length_freq_table(data,
                                                            bind_width,
-                                                           variable = variable,
-                                                           reference = reference)
-    catch_at_length <- catch_at_length %>%
-      arrange(year)
-    summary_long <- catch_at_length
+                                                           variable,
+                                                           reference)
+    variable_composition <- variable_composition %>%
+      arrange_at(self$time_col)
+    summary_long <- variable_composition
+
     summary_wide <- summary_long %>%
       pivot_wider(id_cols = -interval, names_from = year, values_from = freq) %>%
       mutate_at(vars(-midpoint), replace_na, 0) %>%
