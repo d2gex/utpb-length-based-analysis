@@ -1,4 +1,5 @@
 library("R6")
+library("tidyr")
 
 CatchWeightComposition <- R6Class("CatchWeightComposition",
                                   public = list(
@@ -19,6 +20,23 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                       self$interval_col <- interval_col
                                       self$midpoint_col <- midpoint_col
                                       self$freq_col <- freq_col
+                                    },
+                                    generate_catch_and_m.weight_at_length = function(bindwidth, weight_na_as = 0) {
+                                      interval_midpoints <- private$generate_interval_and_midpoint_sequences(bindwidth)
+                                      catch_at_length <-
+                                        private$generate_catch_at_length_frequency(interval_midpoints$size_intervals,
+                                                                                   interval_midpoints$mid_points)
+                                      size_intervas_weight_df <-
+                                        private$generate_length_intervals(interval_midpoints$size_intervals)
+                                      mean.weight_at_length <-
+                                        private$generate_mean_weight_at_length(size_intervas_weight_df)
+                                      catch_m.weight_length <- merge(catch_at_length,
+                                                                     mean.weight_at_length,
+                                                                     by = c(self$time_col, self$interval_col),
+                                                                     all = TRUE)
+                                      catch_m.weight_length <- catch_m.weight_length %>%
+                                        replace_na(list(mean_weight = weight_na_as))
+                                      return(catch_m.weight_length)
                                     }
                                   ),
                                   private = list(

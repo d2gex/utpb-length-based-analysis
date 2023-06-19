@@ -80,4 +80,3 @@ test_that("Mean weight at length for a given dataframe", {
   result <- c_test$test_generate_mean_weight_at_length(size_intervas_weight_df)
   expect_equal(result, expected_mean_weight)
 })
-
