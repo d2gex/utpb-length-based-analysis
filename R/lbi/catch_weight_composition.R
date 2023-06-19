@@ -9,19 +9,23 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                     time_col = NULL,
                                     interval_col = NULL,
                                     midpoint_col = NULL,
+                                    freq_col = NULL,
                                     initialize = function(data, size_col, weight_col, time_col,
-                                                          interval_col, midpoint_col) {
+                                                          interval_col, midpoint_col, freq_col) {
                                       self$data <- data
                                       self$size_col <- size_col
                                       self$weight_col <- weight_col
                                       self$time_col <- time_col
                                       self$interval_col <- interval_col
                                       self$midpoint_col <- midpoint_col
+                                      self$freq_col <- freq_col
                                     }
                                   ),
                                   private = list(
                                     generate_interval_and_midpoint_sequences = function(bindwidth) {
-                                                                            #' Generate interval and midpoint sequences for a given bidnwidth
+                                      # // @formatter:off
+                                      #' Generate interval and midpoint sequences for a given bidnwidth
+                                      # // @formatter:on
                                       min <- floor(min(self$data[, self$size_col]))
                                       max <- ceiling(max(self$data[, self$size_col]))
                                       half_bindwidth <- bindwidth / 2
@@ -55,5 +59,36 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                         size_weight_time_df <- rbind(size_weight_time_df, yearly_data)
                                       }
                                       return(size_weight_time_df)
+                                    },
+                                    generate_catch_at_length_frequency = function (unique_size_intervals, mid_points) {
+                                      # // @formatter:off
+                                      #' Generate catch at length frequency table (contingency table)
+                                      # // @formatter:on
+
+                                      unique_time_periods <- unique(self$data[[self$time_col]])
+                                      columns <- c(self$time_col, self$interval_col, self$midpoint_col, self$freq_col)
+                                      catch_length_df <- create_empty_dataframe(columns)
+                                      for (time_period in unique_time_periods) {
+                                        yearly_data <- self$data %>%
+                                          filter_at(.vars = self$time_col, ~.x == time_period)
+
+                                        #  --> Build frequency table
+                                        yearly_intervals <- as.data.frame(
+                                          table(
+                                            cut(yearly_data[[self$size_col]], unique_size_intervals),
+                                            dnn = columns[2]),
+                                          responseName = columns[4])
+                                        # --> Add midpoints and year columns
+                                        yearly_intervals <- yearly_intervals %>%
+                                          mutate(
+                                            !!columns[1] := time_period,
+                                            !!columns[3] := mid_points
+                                          ) %>%
+                                          select_at(.vars = columns)
+                                        # --> concat year intervals together
+                                        catch_length_df <- rbind(catch_length_df, yearly_intervals)
+                                      }
+                                      return(catch_length_df)
                                     }
+
                                   ))
