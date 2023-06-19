@@ -44,10 +44,10 @@ CatchAtLength <- R6Class("CatchAtLength", public = list(
                                                                          'TALLA',
                                                                          'year')
     weight_summaries <- private$build_variable_composition_matrix(weight_data,
-                                                                bindwidth,
-                                                                col_prefix,
-                                                                'PESO',
-                                                                'year')
+                                                                  bindwidth,
+                                                                  col_prefix,
+                                                                  'PESO',
+                                                                  'year')
     self$talla_w.ignore_long <- talla_w.ignore_summaries$long
     self$talla_w.ignore_wide <- talla_w.ignore_summaries$wide
     self$talla_w.notna_long <- talla_w.notna_summaries$long
