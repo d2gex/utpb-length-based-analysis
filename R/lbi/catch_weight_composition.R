@@ -20,13 +20,8 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                     }
                                   ),
                                   private = list(
-                                    generate_length_intervals = function(bindwidth) {
-                                      # // @formatter:off
-                                      #' Generate a dataframe organised by size intervals of width 'bindwidth' and
-                                      #' its midpoints for each time period in the original dataframe. 'size_col' and
-                                      #' 'weight_col' are as well added as columns.
-                                      # // @formatter:off
-                                      unique_time_periods <- unique(self$data[[self$time_col]])
+                                    generate_interval_and_midpoint_sequences = function(bindwidth) {
+                                                                            #' Generate interval and midpoint sequences for a given bidnwidth
                                       min <- floor(min(self$data[, self$size_col]))
                                       max <- ceiling(max(self$data[, self$size_col]))
                                       half_bindwidth <- bindwidth / 2
@@ -34,7 +29,17 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                       mid_points <- seq(min + half_bindwidth, max - half_bindwidth, bindwidth)
                                       lengt_test <- length(unique_size_intervals) == length(mid_points) + 1
                                       testit::assert(deparse(lengt_test), lengt_test)
+                                      return(list(size_intervals = unique_size_intervals, mid_points = mid_points))
+                                    },
 
+                                    generate_length_intervals = function(unique_size_intervals) {
+                                      # // @formatter:off
+                                      #' Generate a dataframe organised by size intervals of width 'bindwidth' and
+                                      #' its midpoints for each time period in the original dataframe. 'size_col' and
+                                      #' 'weight_col' are as well added as columns.
+                                      # // @formatter:off
+
+                                      unique_time_periods <- unique(self$data[[self$time_col]])
                                       columns <- c(self$time_col, self$interval_col, self$midpoint_col,
                                                    self$size_col, self$weight_col)
                                       size_weight_time_df <- create_empty_dataframe(columns)

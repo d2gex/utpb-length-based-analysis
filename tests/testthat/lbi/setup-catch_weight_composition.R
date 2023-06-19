@@ -13,6 +13,9 @@ CatchWeightCompositionTest <- R6Class("CatchWeightCompositionTest",
                                           super$initialize(data, size_col, weight_col,
                                                            time_col, interval_col, midpoint_col)
                                         },
+                                        test_generate_interval_and_midpoint_sequences = function(bindwidth) {
+                                          super$generate_interval_and_midpoint_sequences(bindwidth)
+                                        },
                                         test_generate_length_intervals = function(bindwidth) {
                                           super$generate_length_intervals(bindwidth)
                                         }
