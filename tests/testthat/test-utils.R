@@ -93,12 +93,12 @@ test_that("Length-Frequency composition", {
   )
   expected_catch_length <- data.frame(
     year =      c(2011, 2011, 2011, 2012, 2012, 2012, 2013, 2013, 2013, 2014, 2014, 2014),
-    midpoint = c(27.5, 28.5, 29.5,27.5, 28.5, 29.5,27.5, 28.5, 29.5,27.5, 28.5, 29.5),
-    freq = c(1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 1)
+    midpoint =  c(27.5, 28.5, 29.5, 27.5, 28.5, 29.5, 27.5, 28.5, 29.5, 27.5, 28.5, 29.5),
+    freq =      c(1,    1,    1,    1,    1,    0,    0,    1,    1,    1,    2,    1)
   )
-
-  result <- generate_catch_at_length_freq_table(raw_data, bindwith = 1, variable = 'talla', 'year')
   # // @formatter:on
+  result <- generate_catch_at_length_freq_table(raw_data, bindwith = 1, variable = 'talla', 'year')
+
   expect_equal(result %>% select(year, midpoint, freq), expected_catch_length)
 
 })

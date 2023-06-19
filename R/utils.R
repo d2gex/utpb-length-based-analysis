@@ -43,7 +43,12 @@ is_single_string <- function(input) {
 
 generate_catch_at_length_freq_table <- function(data, bindwith, variable, reference) {
   # // @formatter:off
-  #' Convert a multivariable
+  #' Generate a long dataframe containing the number of individuals per year and size interval (and its midpoint). The
+  #' size of each interval is given by 'bindwidth' and all values of 'variable' in the datatrame are taken into account
+  #' @param bindwidth: size of each length interval in cms
+  #' @param variable: column of the dataframe for which intervals are generated (i.e., talla, peso, etc..)
+  #' @param reference: column of the dataframe used as reference for which intervals need to be replicated (i.e.:,
+  #' typically a timescale such as year)
   # // @formatter:on
 
   # (1) Create intervals and midpoints over the whole time series
