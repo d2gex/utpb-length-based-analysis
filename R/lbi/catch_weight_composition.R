@@ -4,7 +4,6 @@ library("tidyr")
 CatchWeightComposition <- R6Class("CatchWeightComposition",
                                   public = list(
                                     data = NULL,
-                                    composition = NULL,
                                     size_col = NULL,
                                     weight_col = NULL,
                                     time_col = NULL,

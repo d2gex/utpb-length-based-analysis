@@ -3,11 +3,13 @@ library("dplyr")
 library("tidyr")
 library("stringr")
 source("utils.R")
+source("lbi/catch_weight_composition.R")
 
-CatchAtLength <- R6Class("CatchAtLength", public = list(
+SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
   species_data = NULL,
   species = NULL,
   gears = NULL,
+  time_col = NULL,
   size_col = NULL,
   weight_col = NULL,
   # catch at length composition when the column weight is not taking into account
@@ -18,6 +20,7 @@ CatchAtLength <- R6Class("CatchAtLength", public = list(
   # mean weight composition
   weight_long = NULL,
   weight_wide = NULL,
+  composition = NULL,
 
   initialize = function(db_data, species, gears, time_col, size_col, weight_col) {
     self$species <- species
@@ -25,11 +28,15 @@ CatchAtLength <- R6Class("CatchAtLength", public = list(
     self$time_col <- time_col
     self$size_col <- size_col
     self$weight_col <- weight_col
-    self$species_data <- db_data %>%
-      filter(ESPECIE == self$species) %>%
-      filter(ARTE %in% self$gears) %>%
-      select_at(.vars = c(self$time_col, self$size_col, self$weight_col))
+    private$init(db_data)
+
   },
+  build_talla_only_composition_matrix = function(bindwidth) {
+    return(self$
+             composition$
+             generate_catch_at_length_composition(bindwidth))
+  },
+
   build_talla_and_weight_composition_matrices = function(bindwidth, col_prefix) {
     # // @formatter:off
     #' Build the year-basis composition matrices for size and weight
@@ -70,15 +77,37 @@ CatchAtLength <- R6Class("CatchAtLength", public = list(
   }
 
 ), private = list(
-  build_variable_composition_matrix = function(data, bind_width, col_prefix, variable,) {
+
+  init = function(db_data) {
+    # specific data over which the compotion will be applied
+    self$species_data <- db_data %>%
+      filter(ESPECIE == self$species) %>%
+      filter(ARTE %in% self$gears) %>%
+      select_at(.vars = c(self$time_col, self$size_col, self$weight_col))
+
+    # Catch at length and mean weigh composition generator
+    self$composition <- CatchWeightComposition$new(
+      self$species_data,
+      self$size_col,
+      self$weight_col,
+      self$time_col,
+      "interval",
+      "midpoint",
+      "freq"
+    )
+  }
+
+  ,
+
+  build_variable_composition_matrix = function(data, bind_width, col_prefix, variable) {
     # // @formatter:off
     #' Build the year-basis composition matrix for a given variable (size or weight) and
     #' reference (typically 'year')
     # // @formatter:on
     variable_composition <- generate_catch_at_length_freq_table(data,
-                                                           bind_width,
-                                                           variable,
-                                                           reference)
+                                                                bind_width,
+                                                                variable,
+                                                                reference)
     variable_composition <- variable_composition %>%
       arrange_at(self$time_col)
     summary_long <- variable_composition
