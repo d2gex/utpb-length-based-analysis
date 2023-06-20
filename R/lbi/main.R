@@ -56,4 +56,16 @@ traffic_light_plot <- lb_tableSH(data = species_data_composition$catch_wide,
                                  mk_ratio = t.luscus_lhp$M_K,
                                  weight = species_data_composition$mean_weight_wide)
 
+catch_at_length <- rbind(catch_at_length_w.ignored_summaries$long, species_data_composition$catch_long) %>%
+  select(year, catch) %>%
+  mutate(catch_type = rep(factor(c('Weight col ignored', 'Non-NA weight col')),
+                          times = c(nrow(catch_at_length_w.ignored_summaries$long),
+                                    nrow(species_data_composition$catch_long)))) %>%
+  group_by(year, catch_type) %>%
+  summarise(total_catch = sum(catch))
 
+ggplot(data = catch_at_length, aes(x = year, y = total_catch, colour = catch_type)) +
+  geom_point() +
+  geom_line() +
+  ylab("Num of individuals") +
+  scale_fill_discrete(name = "Catch at length")
