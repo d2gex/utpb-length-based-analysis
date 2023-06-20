@@ -1,5 +1,6 @@
 library("R6")
 library("tidyr")
+source("utils.R")
 
 CatchWeightComposition <- R6Class("CatchWeightComposition",
                                   public = list(
@@ -47,11 +48,11 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                     }
                                   ),
                                   private = list(
-                                    generate_interval_and_midpoint_sequences = function(bindwidth) {
+                                    generate_interval_and_midpoint_sequences = function(bindwidth, min_padding = 0) {
                                       # // @formatter:off
                                       #' Generate interval and midpoint sequences for a given bidnwidth
                                       # // @formatter:on
-                                      min <- floor(min(self$data[, self$size_col])) - 1
+                                      min <- floor(min(self$data[, self$size_col])) - min_padding
                                       max <- ceiling(max(self$data[, self$size_col]))
                                       half_bindwidth <- bindwidth / 2
                                       unique_size_intervals <- seq(min, max, bindwidth)

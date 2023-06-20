@@ -1,4 +1,5 @@
-source("../../R/utils.R")
+setwd("../../R") # Unfortunate hack to get testthat working with single files and not R package
+source("utils.R")
 library("data.table")
 
 test_that("Balance out INTEGER dataframe with different length", {

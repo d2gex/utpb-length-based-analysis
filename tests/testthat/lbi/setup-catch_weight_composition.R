@@ -1,4 +1,5 @@
-source("../../../R/lbi/catch_weight_composition.R")
+setwd("../../../R")
+source("lbi/catch_weight_composition.R")
 library("R6")
 
 CatchWeightCompositionTest <- R6Class("CatchWeightCompositionTest",
