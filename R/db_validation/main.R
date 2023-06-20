@@ -141,6 +141,12 @@ db_filter$get_rid_of_NaNs_for_all_cols('TALLA')
 mute <- db_filter$clean_df %>%
   assert(not_na, TALLA)
 
+# (7.3) ---> Generate a report about species which talla ain't >= 1
+threshold <- 1
+db_filter$get_rid_of_values_below_threshold('TALLA', threshold = threshold)
+mute <- db_filter$clean_df %>%
+  assert(function (x) x >= threshold, TALLA)
+
 # (8) Get rid of rows whose NUMINDIVS column is NaN
 log_info("--> (6) Clean up those species whose NUMINDIVS is not provided")
 db_filter$get_rid_of_NaNs_for_all_cols('NUMINDIVS')
