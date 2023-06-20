@@ -45,16 +45,21 @@ SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
     private$init(db_data)
 
   },
-  build_talla_only_composition_matrix = function(bindwidth) {
+  build_talla_only_composition_matrix = function(bindwidth, col_prefix, min_padding) {
     # // @formatter:off
     #' Build a year-basis catch-at-length composition composition matrix when weight is ignored
     # // @formatter:on
-    return(self$
-             composition$
-             generate_catch_at_length_composition(bindwidth))
+    summary_catch <- self$
+      composition$
+      generate_catch_at_length_composition(bindwidth, min_padding)
+    summary_catch_long_wide <-
+      private$build_long_wide_variable_composition_matrix(summary_catch,
+                                                          col_prefix,
+                                                          self$catch_col)
+    return(list(long = summary_catch_long_wide$long, wide = summary_catch_long_wide$wide))
   },
 
-  build_talla_and_weight_composition_matrices = function(bindwidth, col_prefix) {
+  build_talla_and_weight_composition_matrices = function(bindwidth, col_prefix, min_padding) {
     # // @formatter:off
     #' Build a year-basis catch-at-length and mean-weight composition matrices both in long and wide format
     #' (4 matrices, 2 for catch_at_length and 2 for mean-weight)
@@ -63,7 +68,7 @@ SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
     # (1) Generate catch and mean-weight
     catch_mean_weight_at_length <- self$
       composition$
-      generate_catch_and_m.weight_at_length_composition(bindwidth)
+      generate_catch_and_m.weight_at_length_composition(bindwidth, min_padding = 1)
 
     # (2) Build long and wide catch-at-length dataframe
     catch_details <- catch_mean_weight_at_length %>% select(-!!self$mean_weight_col)
@@ -73,7 +78,7 @@ SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
 
     # (3) Build long and wide mean-weight-at-length dataframe
     mean_weight_details <- catch_mean_weight_at_length %>% select(-!!self$catch_col)
-    to_kg <- function (x) {round(x/100, 2)}
+    to_kg <- function(x) { round(x / 100, 2) }
     summary_mean_weight <- private$build_long_wide_variable_composition_matrix(mean_weight_details,
                                                                                col_prefix,
                                                                                self$mean_weight_col,
@@ -103,14 +108,17 @@ SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
     )
   }
   ,
-  build_long_wide_variable_composition_matrix = function(data, col_prefix, variable, converter_func = NULL) {
+  build_long_wide_variable_composition_matrix = function(data,
+                                                         col_prefix,
+                                                         variable,
+                                                         converter_func = NULL) {
 
     # return long frame
     summary_long <- data %>%
       arrange_at(.vars = c(self$time_col, self$interval_col))
     if (!is.null(converter_func)) {
       summary_long <- summary_long %>%
-        mutate_at (.vars = variable, .funs = converter_func)
+        mutate_at(.vars = variable, .funs = converter_func)
     }
 
     # return wide frame

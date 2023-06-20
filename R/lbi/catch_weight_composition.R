@@ -21,16 +21,19 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                       self$midpoint_col <- midpoint_col
                                       self$freq_col <- freq_col
                                     },
-                                    generate_catch_at_length_composition = function(bindwidth) {
-                                      interval_midpoints <- private$generate_interval_and_midpoint_sequences(bindwidth)
+                                    generate_catch_at_length_composition = function(bindwidth, min_padding) {
+                                      interval_midpoints <- private$generate_interval_and_midpoint_sequences(bindwidth,
+                                                                                                             min_padding)
                                       catch_at_length <-
                                         private$generate_catch_at_length_frequency(interval_midpoints$size_intervals,
                                                                                    interval_midpoints$mid_points)
                                       return(catch_at_length)
                                     },
                                     generate_catch_and_m.weight_at_length_composition = function(bindwidth,
-                                                                                                 weight_na_as = 0) {
-                                      interval_midpoints <- private$generate_interval_and_midpoint_sequences(bindwidth)
+                                                                                                 weight_na_as = 0,
+                                                                                                 min_padding) {
+                                      interval_midpoints <- private$generate_interval_and_midpoint_sequences(bindwidth,
+                                                                                                             min_padding)
                                       catch_at_length <-
                                         private$generate_catch_at_length_frequency(interval_midpoints$size_intervals,
                                                                                    interval_midpoints$mid_points)
