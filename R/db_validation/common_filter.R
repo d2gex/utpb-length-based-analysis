@@ -33,7 +33,7 @@ DbDataFilter <-
               self$clean_df <- self$clean_df %>% filter(if_any(fields, ~!is.na(.)))
               invisible(self)
             },
-            get_rid_of_values_below_threshold = function (field, threshold) {
+            get_rid_of_values_below_threshold = function(field, threshold) {
               dirty_data <- self$clean_df %>% filter(field < threshold)
               self$add_to_dirty(dirty_data, error_description = paste('<', threshold, '(excluded):',
                                                                       paste(field, collapse = ',')))
