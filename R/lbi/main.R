@@ -38,23 +38,22 @@ species_data_composition <- SpeciesDataComposition$new(clean_db_data_tallas,
                                                        freq_col)
 
 species_data_composition$build_talla_and_weight_composition_matrices(bindwidth, col_prefix, min_padding = 1)
+catch_at_length_w.ignored_summaries <- species_data_composition$build_talla_only_composition_matrix(bindwidth,
+                                                                                                    col_prefix,
+                                                                                                    min_padding = 1)
 
 # catch_at_length$build_talla_and_weight_composition_matrices(bindwidth, col_prefix)
 t.luscus_lhp <- read_csv(file.path(EXTRA_DATA_PATH, 'species_lh_parameters.csv')) %>%
   filter(stocks == "Trisopterus luscus")
 
-t_g <- bin_plot(species_data_composition$catch_wide, binwidth = 1, "cm")
-traffic_light <- lb_tableSH(data = species_data_composition$catch_wide,
-                            binwidth = 1,
-                            l_units = "cm",
-                            linf = t.luscus_lhp$Linf,
-                            lmat = t.luscus_lhp$L50,
-                            mk_ratio = t.luscus_lhp$M_K,
-                            weight = species_data_composition$mean_weight_wide)
+catch_at_length_w.ignored_plot <- bin_plot(catch_at_length_w.ignored_summaries$wide, binwidth = 1, "cm")
+catch_at_length_w.notna_plot <- bin_plot(species_data_composition$catch_wide, binwidth = 1, "cm")
+traffic_light_plot <- lb_tableSH(data = species_data_composition$catch_wide,
+                                 binwidth = 1,
+                                 l_units = "cm",
+                                 linf = t.luscus_lhp$Linf,
+                                 lmat = t.luscus_lhp$L50,
+                                 mk_ratio = t.luscus_lhp$M_K,
+                                 weight = species_data_composition$mean_weight_wide)
 
-catch_at_length_weigh_na <- species_data_composition$build_talla_only_composition_matrix(bindwidth,
-                                                                                         col_prefix,
-                                                                                         min_padding = 1)
-#
-# # t_g
-# # traffic_light
+

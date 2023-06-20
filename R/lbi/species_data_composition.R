@@ -21,8 +21,6 @@ SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
   catch_wide = NULL,
   mean_weight_long = NULL,
   mean_weight_wide = NULL,
-  composition = NULL,
-
   initialize = function(db_data,
                         species,
                         gears,
@@ -42,15 +40,30 @@ SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
     self$interval_col <- interval_col
     self$midpoint_col <- midpoint_col
     self$catch_col <- catch_col
-    private$init(db_data)
+
+    self$species_data <- db_data %>%
+      filter(ESPECIE == self$species) %>%
+      filter(ARTE %in% self$gears) %>%
+      select_at(.vars = c(self$time_col, self$size_col, self$weight_col))
 
   },
   build_talla_only_composition_matrix = function(bindwidth, col_prefix, min_padding) {
     # // @formatter:off
-    #' Build a year-basis catch-at-length composition composition matrix when weight is ignored
+    #' Build a year-basis catch-at-length composition composition matrix when the weight column is
+    #' not debugged, therefore it could be NA
     # // @formatter:on
-    summary_catch <- self$
-      composition$
+
+    # Catch at length and mean weigh composition generator
+    composition <- CatchWeightComposition$new(
+      self$species_data,
+      self$size_col,
+      self$weight_col,
+      self$time_col,
+      self$interval_col,
+      self$midpoint_col,
+      self$catch_col
+    )
+    summary_catch <- composition$
       generate_catch_at_length_composition(bindwidth, min_padding)
     summary_catch_long_wide <-
       private$build_long_wide_variable_composition_matrix(summary_catch,
@@ -65,10 +78,21 @@ SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
     #' (4 matrices, 2 for catch_at_length and 2 for mean-weight)
     # // @formatter:on
 
+    species_data <- self$species_data %>%
+      filter_at(.vars = self$weight_col, not_na)
+    # Catch at length and mean weigh composition generator
+    composition <- CatchWeightComposition$new(
+      species_data,
+      self$size_col,
+      self$weight_col,
+      self$time_col,
+      self$interval_col,
+      self$midpoint_col,
+      self$catch_col
+    )
     # (1) Generate catch and mean-weight
-    catch_mean_weight_at_length <- self$
-      composition$
-      generate_catch_and_m.weight_at_length_composition(bindwidth, min_padding = 1)
+    catch_mean_weight_at_length <-
+      composition$generate_catch_and_m.weight_at_length_composition(bindwidth, min_padding = 1)
 
     # (2) Build long and wide catch-at-length dataframe
     catch_details <- catch_mean_weight_at_length %>% select(-!!self$mean_weight_col)
@@ -88,26 +112,6 @@ SpeciesDataComposition <- R6Class("SpeciesDataComposition", public = list(
   }
 
 ), private = list(
-
-  init = function(db_data) {
-    # specific data over which the compotion will be applied
-    self$species_data <- db_data %>%
-      filter(ESPECIE == self$species) %>%
-      filter(ARTE %in% self$gears) %>%
-      select_at(.vars = c(self$time_col, self$size_col, self$weight_col))
-
-    # Catch at length and mean weigh composition generator
-    self$composition <- CatchWeightComposition$new(
-      self$species_data,
-      self$size_col,
-      self$weight_col,
-      self$time_col,
-      self$interval_col,
-      self$midpoint_col,
-      self$catch_col
-    )
-  }
-  ,
   build_long_wide_variable_composition_matrix = function(data,
                                                          col_prefix,
                                                          variable,
