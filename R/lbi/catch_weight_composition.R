@@ -51,7 +51,7 @@ CatchWeightComposition <- R6Class("CatchWeightComposition",
                                       # // @formatter:off
                                       #' Generate interval and midpoint sequences for a given bidnwidth
                                       # // @formatter:on
-                                      min <- floor(min(self$data[, self$size_col]))
+                                      min <- floor(min(self$data[, self$size_col])) - 1
                                       max <- ceiling(max(self$data[, self$size_col]))
                                       half_bindwidth <- bindwidth / 2
                                       unique_size_intervals <- seq(min, max, bindwidth)
