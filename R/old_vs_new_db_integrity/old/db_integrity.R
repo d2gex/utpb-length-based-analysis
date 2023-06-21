@@ -6,7 +6,7 @@ library("tidyverse")
 library("openxlsx")
 library("quanteda")
 library("R6")
-source("utils.R")
+source("../utils.R")
 source("old_vs_new_db_integrity/utils.R")
 
 IntegrityData <- R6Class("IntegrityData", public = list(
@@ -56,7 +56,7 @@ DbVersionComparator <- R6Class("DbVersionComparator", public = list(
   },
   fetch_data_from_dataframes_up_to_date = function(max_oldb) {
     # (4) Get a snapshot of relevant columns up to the maximum date in the old dataframe, which means
-    # the entire old dataframe and the new one
+    # the entire old dataframe and a snapshot of the new one up to max_oldb
 
     old_df <- self$old_db_data %>%
       filter(is.na(HorafV) | HorafV <= max_oldb) %>%

@@ -1,12 +1,15 @@
+library("readxl")
 source("old_vs_new_db_integrity/db_integrity.R")
-output_path <- "../../data/sensitive/output/old_new_db_differences.xlsx"
+output_path <- "../../../repos_data/utpblbm/data/sensitive/output/old_new_db_differences.xlsx"
 if (!exists('old_db_tallas'))
-  old_db_tallas <- read_csv2("../data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_TALLAS_16-05-2018.csv",
+  old_db_tallas <- read_csv2("../../../repos_data/utpblbm/data/sensitive/consulta_utpb_2018/CONSULTA BDP_UTPB_TALLAS_16-05-2018.csv",
                              locale = locale(encoding = 'latin1'))
 
 if (!exists('new_db_tallas'))
-  new_db_tallas <- read_csv2("../data/sensitive/CONSULTA BDP_UTPB_TALLAS_17-04-2023_.csv",
-                             locale = locale(encoding = 'latin1'))
+  new_db_tallas <- read_excel("../../../repos_data/utpblbm/data/db_corrections/CONSULTA BDP_UTPB_TALLAS_17-04-23 CORREXIDO.xlsx")
+
+# Hack to be removed
+data.table::setnames(new_db_tallas, old = 'lat ini', new = 'LAT inicio')
 
 integrity_data <- IntegrityData$new()
 integrity_data$sought_columns <- c('Idlance', 'ESPECIE', 'PUERTO_EMBARQUE', 'Madurez',
