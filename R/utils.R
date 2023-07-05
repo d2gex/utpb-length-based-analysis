@@ -41,6 +41,18 @@ is_single_string <- function(input) {
   is.character(input) & length(input) == 1
 }
 
+build_yearly_date_intervals <- function (day, month, date_sep, start_year, end_year, year_step) {
+  years <- seq(start_year, end_year, year_step)
+  date_intervals <- list()
+  for (x in 2:length(years)) {
+    start <- ifelse(x==2, start_year, years[x-1])
+    previous_date <- paste0(day, date_sep, month, date_sep, start)
+    next_date <- paste0(day, date_sep, month, date_sep, years[x])
+    date_intervals[[x-1]] <- c(previous_date, next_date)
+  }
+  return(date_intervals)
+}
+
 generate_catch_at_length_freq_table <- function(data, bindwith, variable, reference) {
   # // @formatter:off
   #' Generate a long dataframe containing the number of individuals per year and size interval (and its midpoint). The
