@@ -96,11 +96,11 @@ test_that("Generate correct year intervals between two dates", {
   # 1999 2003 2007 2011 2015 2019 2023
   expected_result <- list (
     c(paste0(day, date_sep, month, date_sep, 1999), paste0(day, date_sep, month, date_sep, 2003)),
-    c(paste0(day, date_sep, month, date_sep, 2003), paste0(day, date_sep, month, date_sep, 2007)),
-    c(paste0(day, date_sep, month, date_sep, 2007), paste0(day, date_sep, month, date_sep, 2011)),
-    c(paste0(day, date_sep, month, date_sep, 2011), paste0(day, date_sep, month, date_sep, 2015)),
-    c(paste0(day, date_sep, month, date_sep, 2015), paste0(day, date_sep, month, date_sep, 2019)),
-    c(paste0(day, date_sep, month, date_sep, 2019), paste0(day, date_sep, month, date_sep, 2023))
+    c(paste0(day + 1, date_sep, month, date_sep, 2003), paste0(day, date_sep, month, date_sep, 2007)),
+    c(paste0(day + 1, date_sep, month, date_sep, 2007), paste0(day, date_sep, month, date_sep, 2011)),
+    c(paste0(day + 1, date_sep, month, date_sep, 2011), paste0(day, date_sep, month, date_sep, 2015)),
+    c(paste0(day + 1, date_sep, month, date_sep, 2015), paste0(day, date_sep, month, date_sep, 2019)),
+    c(paste0(day + 1, date_sep, month, date_sep, 2019), paste0(day, date_sep, month, date_sep, 2023))
   )
   result <- build_yearly_date_intervals(day, month, date_sep, start_year, end_year, year_step)
   expect_equal(result, expected_result)

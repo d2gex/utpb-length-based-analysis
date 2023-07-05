@@ -41,26 +41,33 @@ is_single_string <- function(input) {
   is.character(input) & length(input) == 1
 }
 
-build_yearly_date_intervals <- function (day, month, date_sep, start_year, end_year, year_step) {
+build_yearly_date_intervals <- function(start_day, start_month, date_sep, start_year, end_year, year_step) {
   years <- seq(start_year, end_year, year_step)
   date_intervals <- list()
   for (x in 2:length(years)) {
-    start <- ifelse(x==2, start_year, years[x-1])
-    previous_date <- paste0(day, date_sep, month, date_sep, start)
-    next_date <- paste0(day, date_sep, month, date_sep, years[x])
-    date_intervals[[x-1]] <- c(previous_date, next_date)
+    if (x == 2) {
+      s_year <- start_year
+      s_day <- start_day
+    }
+    else {
+      s_year <- years[x - 1]
+      s_day <- start_day + 1
+    }
+    previous_date <- paste0(s_day, date_sep, start_month, date_sep, s_year)
+    next_date <- paste0(start_day, date_sep, start_month, date_sep, years[x])
+    date_intervals[[x - 1]] <- c(previous_date, next_date)
   }
   return(date_intervals)
 }
 
 generate_catch_at_length_freq_table <- function(data, bindwith, variable, reference) {
   # // @formatter:off
-  #' Generate a long dataframe containing the number of individuals per year and size interval (and its midpoint). The
-  #' size of each interval is given by 'bindwidth' and all values of 'variable' in the datatrame are taken into account
-  #' @param bindwidth: size of each length interval in cms
-  #' @param variable: column of the dataframe for which intervals are generated (i.e., talla, peso, etc..)
-  #' @param reference: column of the dataframe used as reference for which intervals need to be replicated (i.e.:,
-  #' typically a timescale such as year)
+    #' Generate a long dataframe containing the number of individuals per year and size interval (and its midpoint). The
+    #' size of each interval is given by 'bindwidth' and all values of 'variable' in the datatrame are taken into account
+    #' @param bindwidth: size of each length interval in cms
+    #' @param variable: column of the dataframe for which intervals are generated (i.e., talla, peso, etc..)
+    #' @param reference: column of the dataframe used as reference for which intervals need to be replicated (i.e.:,
+    #' typically a timescale such as year)
   # // @formatter:on
 
   # (1) Create intervals and midpoints over the whole time series
@@ -101,8 +108,8 @@ generate_catch_at_length_freq_table <- function(data, bindwith, variable, refere
 
 make_cols_same_length <- function(col_1, col_2, fill) {
   # // @formatter:off
-  #' Ensure to given columns have the same length by filling up the shotest columns with a give
-  #' filling value
+    #' Ensure to given columns have the same length by filling up the shotest columns with a give
+    #' filling value
   # // @formatter:on
 
   if (length(col_1) == length(col_2)) {
@@ -133,8 +140,8 @@ get_name <- function(var_name) {
 
 from_crs_to_crs <- function(df, lon, lat, crs_source, crs_dest) {
   # @formatter:off
-  #' Return a dataframe with two coordinate-columns converted to a given CRS. The name of the columns
-  #' is the same as in the original dataframe df
+    #' Return a dataframe with two coordinate-columns converted to a given CRS. The name of the columns
+    #' is the same as in the original dataframe df
   # @formatter:on
 
   coords <- c(lon, lat)
@@ -159,9 +166,9 @@ from_crs_to_crs <- function(df, lon, lat, crs_source, crs_dest) {
 
 replace_columns <- function(df_to, df_from, replaced_columns, condition_columns) {
   # @formatter:off
-  #' Replaces a subset of columns in df_to from df_from, assuming that the columns being
-  #' replaced have the same name in both dataframes and that all rows from df_to should
-  #' be returned
+    #' Replaces a subset of columns in df_to from df_from, assuming that the columns being
+    #' replaced have the same name in both dataframes and that all rows from df_to should
+    #' be returned
   # @formatter:on
 
   # (1) Get subset of relevant columns
@@ -184,8 +191,8 @@ replace_columns <- function(df_to, df_from, replaced_columns, condition_columns)
 
 add_text_to_graph_position <- function(gg_plot, df, x_col, y_col, label_col, label_text_size, vertical_adjustment_function) {
   # @formatter:off
-  #' Add the value of one column in the passed dataframe on top of each bar. The vertical adjustment
-  #' is calculated by the passed function
+    #' Add the value of one column in the passed dataframe on top of each bar. The vertical adjustment
+    #' is calculated by the passed function
   # @formatter:on
   for (row in 1:nrow(df)) {
     x <- df[row, x_col]
@@ -206,13 +213,13 @@ plots_to_pdf <-
            height,
            width) {
     # @formatter:off
-    #' Creates a pdf with a list of plotted objects
-    #' @param all_graph_plots A list of plots
-    #' @param filename A string
-    #' @param paper A string
-    #' @param height A integer
-    #' @param width A integer
-    #' @return NULL
+        #' Creates a pdf with a list of plotted objects
+        #' @param all_graph_plots A list of plots
+        #' @param filename A string
+        #' @param paper A string
+        #' @param height A integer
+        #' @param width A integer
+        #' @return NULL
     # @formatter:on
 
     pdf(filename,
