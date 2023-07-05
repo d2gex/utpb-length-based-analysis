@@ -42,6 +42,8 @@ is_single_string <- function(input) {
 }
 
 build_yearly_date_intervals <- function(start_day, start_month, date_sep, start_year, end_year, year_step) {
+  #' Build a set of intervals split apart by a given step between two years. It assumes that the dates follows
+  #' the format 'mm/dd/yyyy'
   years <- seq(start_year, end_year, year_step)
   date_intervals <- list()
   for (x in 2:length(years)) {
@@ -53,8 +55,8 @@ build_yearly_date_intervals <- function(start_day, start_month, date_sep, start_
       s_year <- years[x - 1]
       s_day <- start_day + 1
     }
-    previous_date <- paste0(s_day, date_sep, start_month, date_sep, s_year)
-    next_date <- paste0(start_day, date_sep, start_month, date_sep, years[x])
+    previous_date <- paste0(start_month, date_sep, s_day, date_sep, s_year)
+    next_date <- paste0(start_month, date_sep, start_day, date_sep, years[x])
     date_intervals[[x - 1]] <- c(previous_date, next_date)
   }
   return(date_intervals)
