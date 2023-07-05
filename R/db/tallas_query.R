@@ -1,48 +1,33 @@
+library(stringr)
+build_talla_query_interval <- function(from_date, to_date, db_context) {
 
-build_talla_query_interval <- function(from_date, to_date) {
-  tallas_query <- "
+  columns <- paste(db_context$talla_columns, collapse = ",")
+  query <- sprintf("
 SELECT
-    j.idjornada,
-    l.Idlance,
-    e.Idespecie,
-    em.Idartes,
-    j.dia,
-    e.ESPECIE,
-    z2.ZONA,
-    cax.ARTE,
-    l.FLARG,
-    l.HorafL,
-    l.FVIR,
-    l.HorafV,
-    l.mcarte1,
-    l.[LAT inicio],
-    l.[LON inicio],
-    l.[LAT final],
-    l.[LON final],
-    l.TIPOFONDO,
-    l.PROFMax,
-    l.PROFMin,
-    l.PROFMed,
-    m.CoD,
-    m.NUMINDIVS,
-    m.PESO,
-    m.TALLA
+    %s
   FROM
-  ((
-  (codigos_xunta cax inner join Artes a on cax.Idarte = a.Idarte)
-  inner join Lances l on l.Idlance = a.Idlance
+  (
+  ((%s cax inner join %s a on cax.Idarte = a.Idarte)
+  inner join %s l on l.Idlance = a.Idlance)
+  inner join
+  ((%s z2 right join %s j on z2.Idzona = j.Idzona2)) on j.idjornada = l.idjorn
   )
-  inner join (
-  (zonas2 z2 right join Jornada j on z2.Idzona = j.Idzona2)
-  ) on j.idjornada = l.idjorn)
-  inner join (
-  (Especies e inner join EspeciesM em on e.Idespecie = em.IdespM) inner join Muestreos m on em.Idesp = m.Idesp
-  ) on a.Idnasa = em.Idartes"
-  tallas_query <- paste(tallas_query,
-                        "WHERE",
-                        paste0( "j.dia >=#", from_date, "#"),
-                        "AND",
-                        paste0("j.dia <=#", to_date, "#"))
-  return (tallas_query)
+  inner join
+  ((%s e inner join %s em on e.Idespecie = em.IdespM) inner join %s m on em.Idesp = m.Idesp
+  ) on a.Idnasa = em.Idartes
+  WHERE j.dia >=#%s# AND j.dia <=#%s#",
+                   columns,
+                   db_context$artes,
+                   db_context$artes_lances,
+                   db_context$lances,
+                   db_context$zonas,
+                   db_context$jornadas,
+                   db_context$especies,
+                   db_context$especies_muestreadas,
+                   db_context$muestreos,
+                   from_date,
+                   to_date)
+
+  return(str_replace_all(query, "[\r\n]" , ""))
 }
 
