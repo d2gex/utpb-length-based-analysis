@@ -17,7 +17,6 @@ april_2018_caputras_db <- read_csv2(file.path(DATA_SENSITIVE_PATH,
                                     locale = locale(encoding = 'latin1'))
 
 
-
 # (1) Generate spreadsheet with different in column names
 talla_names_2023 <- sort(names(jun_2023_tallas_db))
 talla_names_2018 <- sort(names(april_2018_tallas_db))
@@ -65,14 +64,26 @@ col_name_mapping <- list(
   "rango" = "Rango"
 )
 
-# # (2) Rename columns
-# col_name_mapping <- list(
-#   'LON inicio' = 'start_long',
-#   'LAT inicio' = 'start_lat',
-#   'LON final' = 'end_long',
-#   'LAT final' = 'end_lat'
-# )
-#
-# old_columns <- names(col_name_mapping)
-# new_columns <- unlist(unname(col_name_mapping))
-# data.table::setnames(jun_2023_tallas_db, old = old_columns, new = new_columns)
+# (2) Rename columns
+col_name_mapping <- list(
+  'LON inicio' = 'start_long',
+  'LAT inicio' = 'start_lat',
+  'LON final' = 'end_long',
+  'LAT final' = 'end_lat'
+)
+april_2018_tallas_db <- read_csv2(file.path(DATA_SENSITIVE_PATH,
+                                            'consulta_utpb_2018',
+                                            'CONSULTA BDP_UTPB_TALLAS_16-05-2018.csv'),
+                                  locale = locale(encoding = 'latin1'))
+tallas_df_2018_cut <- copy(tallas_df)
+old_columns <- names(col_name_mapping)
+new_columns <- unlist(unname(col_name_mapping))
+data.table::setnames(april_2018_tallas_db, old = old_columns, new = new_columns)
+data.table::setnames(tallas_df_2018_cut, old = old_columns, new = new_columns)
+
+old_db <- prepare_geo_and_time_cols(april_2018_tallas_db)
+new_db <- prepare_geo_and_time_cols(tallas_df_2018_cut)
+max(old_db$date)
+max(new_db$date)
+max_date <= max(old_db$date)
+new_db_cut <- new_db %>% filter( date <= max_date)
