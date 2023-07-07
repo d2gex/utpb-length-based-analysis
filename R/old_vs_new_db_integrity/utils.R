@@ -12,7 +12,7 @@ fLon <- function(x) {
   )) / 1000) / 60)
 }
 
-prepare_geo_and_time_cols <- function(df) {
+prepare_geo_and_time_cols <- function(df, rowise_max_date = FALSE) {
   df <- df %>%
     mutate(
       lon_ini_dec = fLon(start_long),
@@ -44,12 +44,15 @@ prepare_geo_and_time_cols <- function(df) {
       HorafL = as.POSIXct(HorafL, format = "%d/%m/%Y %H:%M", tz = "UTC"),
       HorafV = as.POSIXct(HorafV, format = "%d/%m/%Y %H:%M", tz = "UTC"),
       FLARG = as.POSIXct(FLARG, format = "%d/%m/%Y %H:%M", tz = "UTC"),
-      FVIR = as.POSIXct(FVIR, format = "%d/%m/%Y %H:%M", tz = "UTC")
-    ) %>%
-    rowwise() %>%
-    mutate(date = max(HorafL, HorafV, FLARG, FVIR, na.rm = TRUE))
-  df  <- df %>%  mutate(year = as.numeric(format(date, format = "%Y")))
-
+      FVIR = as.POSIXct(FVIR, format = "%d/%m/%Y %H:%M", tz = "UTC"),
+      dia = as.POSIXct(dia, format = "%d/%m/%Y")
+    )
+  if (rowise_max_date) {
+    df <- df %>%
+      rowwise() %>%
+      mutate(date = max(HorafL, HorafV, FLARG, FVIR, na.rm = TRUE)) %>%
+      mutate(year = as.numeric(format(date, format = "%Y")))
+  }
   return(df)
 }
 

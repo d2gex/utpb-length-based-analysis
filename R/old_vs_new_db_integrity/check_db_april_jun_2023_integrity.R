@@ -75,15 +75,11 @@ april_2018_tallas_db <- read_csv2(file.path(DATA_SENSITIVE_PATH,
                                             'consulta_utpb_2018',
                                             'CONSULTA BDP_UTPB_TALLAS_16-05-2018.csv'),
                                   locale = locale(encoding = 'latin1'))
-tallas_df_2018_cut <- copy(tallas_df)
+new_tallas_df <- read_csv(file.path(DATA_SENSITIVE_PATH, 'acess_db', ))
+new_tallas_df <- copy(tallas_df)
 old_columns <- names(col_name_mapping)
 new_columns <- unlist(unname(col_name_mapping))
 data.table::setnames(april_2018_tallas_db, old = old_columns, new = new_columns)
-data.table::setnames(tallas_df_2018_cut, old = old_columns, new = new_columns)
-
+data.table::setnames(new_tallas_df, old = old_columns, new = new_columns)
 old_db <- prepare_geo_and_time_cols(april_2018_tallas_db)
-new_db <- prepare_geo_and_time_cols(tallas_df_2018_cut)
-max(old_db$date)
-max(new_db$date)
-max_date <= max(old_db$date)
-new_db_cut <- new_db %>% filter( date <= max_date)
+new_db <- prepare_geo_and_time_cols(new_tallas_df)
