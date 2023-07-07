@@ -7,13 +7,13 @@ source("utils.R")
 source("db/db_context.R")
 source("db/db_queries.R")
 
-tallas_db <- "../../../../repos_data/utpblbm/data/sensitive/acess_db/Pesca-tablas.accdb"
+tallas_db <- "../../../../repos_data/utpblbm/data/sensitive/acess_db/utpb_database.accdb"
 db_context <- DbContext$new()
 day <- 1
 month <- 1
 date_sep <- '/'
 start_year <- 1999
-end_year <- 2024
+end_year <- 2018
 year_step <- 1
 years_interval <- seq(from = start_year, to = end_year, by = year_step)
 date_intervals <- build_yearly_date_intervals(day, month, date_sep, start_year, end_year, year_step)
@@ -35,3 +35,6 @@ for (interval in date_intervals) {
   n_rows <- append(n_rows, nrow(year_df))
 }
 close(db_connection)
+# write_csv(tallas_df, "../../../repos_data/utpblbm/data/sensitive/acess_db/new_tallas.csv")
+
+
