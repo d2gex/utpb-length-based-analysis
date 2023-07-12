@@ -58,33 +58,43 @@ SELECT  ss.idespecie,
 WHERE catches.Idartes in (21464379,957572841,-1657205501,-868540539,-557962433)
 order by catches.Idartes
 
+SELECT count(*)
+FROM
+(SELECT
+    ar.Idarte,
+    em.IdespM,
+    em.Idartes
+    FROM ((((((Jornada j INNER JOIN [Observador 1] ob on j.OBSER1 = ob.Id)
+        INNER JOIN FLOTA f ON f.Idflota = j.Idflota)
+        INNER JOIN zonas2 z2 ON z2.Idzona = j.Idzona2)
+        INNER JOIN Lances l ON l.idjorn = j.idjornada)
+        INNER JOIN Artes ar ON ar.Idlance = l.Idlance)
+        INNER JOIN EspeciesM em ON em.Idartes = ar.Idnasa)
+        INNER JOIN unique_especies_seleccionadas uem on uem.idespecie = em.IdespM) as catches
+RIGHT JOIN
+(SELECT idarte, idespecie, ESPECIE FROM especies_seleccionadas) as ss
+ON (ss.idarte = catches.Idarte) AND  (ss.idespecie = catches.IdespM)
+WHERE catches.Idartes in (21464379,957572841,-1657205501,-868540539,-557962433)
 
+order by catches.Idartes
+
+
+
+        RIGHT JOIN
+        (SELECT idarte, idespecie, ESPECIE FROM especies_seleccionadas) as ss
+        ON (ss.idarte = catches.idarte) AND  (ss.idespecie = catches.IdespM)
+WHERE catches.Idartes in (21464379,957572841,-1657205501,-868540539,-557962433)
+order by catches.Idartes
 
 
 SELECT
-    ss.idespecie,
-    ss.ESPECIE,
-    ss.ARTE,
-    catches.idjornada,
-    catches.idarte,
-    catches.Idartes,
-    catches.Idlance,
-    catches.IdespM,
-    catches.NumC,
-    catches.PesoC,
-    catches.NumD,
-    catches.PesoD
-    FROM (((((((Jornada j INNER JOIN [Observador 1] ob on j.OBSER1 = ob.Id)
+    count(*)
+    FROM ((((((Jornada j INNER JOIN [Observador 1] ob on j.OBSER1 = ob.Id)
         INNER JOIN FLOTA f ON f.Idflota = j.Idflota)
-INNER JOIN zonas2 z2 ON z2.Idzona = j.Idzona2)
-INNER JOIN Lances l ON l.idjorn = j.idjornada)
-INNER JOIN Artes ar ON ar.Idlance = l.Idlance)
-INNER JOIN EspeciesM em ON em.Idartes = ar.Idnasa)
-INNER JOIN unique_especies_seleccionadas uem on uem.idespecie = em.IdespM) as catches
-RIGHT JOIN
-        (SELECT  ss.idespecie,
-        ss.ESPECIE,
-        ss.ARTE
-         FROM especies_seleccionadas as ss) ON catches.
+        INNER JOIN zonas2 z2 ON z2.Idzona = j.Idzona2)
+        INNER JOIN Lances l ON l.idjorn = j.idjornada)
+        INNER JOIN Artes ar ON ar.Idlance = l.Idlance)
+        INNER JOIN EspeciesM em ON em.Idartes = ar.Idnasa)
+        INNER JOIN unique_especies_seleccionadas uem on uem.idespecie = em.IdespM as catches
 WHERE catches.Idartes in (21464379,957572841,-1657205501,-868540539,-557962433)
 order by catches.Idartes
